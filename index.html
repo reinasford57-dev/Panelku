@@ -482,32 +482,36 @@
     }
 
     async function checkout() {
-        if (cart.length === 0) { showToast('error', 'Keranjang kosong', 'Tambahkan produk terlebih dahulu'); return; }
-        const items = cart.map(item => ({ productId: item.productId, level: item.level, qty: item.qty }));
-        const btn = document.getElementById('checkout-btn');
-        const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-        btn.disabled = true;
-        try {
-            const res = await fetch('/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ items, userId: currentUser ? currentUser.username : 'anonymous' })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Gagal checkout');
-            cart = [];
-            updateCartUI();
-            toggleCart();
-            showToast('success', '🎉 Pesanan berhasil!', `Total: Rp${data.order.total.toLocaleString()}`);
-        } catch (err) {
-            showToast('error', 'Checkout gagal', err.message);
-        } finally {
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
+  if (cart.length === 0) { showToast('error', 'Keranjang kosong', 'Tambahkan produk terlebih dahulu'); return; }
+  const items = cart.map(item => ({ productId: item.productId, level: item.level, qty: item.qty }));
+  const btn = document.getElementById('checkout-btn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, userId: currentUser ? currentUser.username : 'anonymous' })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Gagal checkout');
+    // Kosongkan keranjang
+    cart = [];
+    updateCartUI();
+    toggleCart();
+    showToast('success', '🎉 Pesanan berhasil!', `Total: Rp${data.order.total.toLocaleString()}`);
+    
+    // Tambahkan pembayaran QR
+    showPaymentQR(data.order.id);
+  } catch (err) {
+    showToast('error', 'Checkout gagal', err.message);
+  } finally {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  }
     }
-
+    
     // Fungsi untuk membuka modal pembayaran QR
 function showPaymentQR(orderId) {
   const modal = document.getElementById('payment-modal');
