@@ -7,7 +7,7 @@ const PORT = 3000;
 
 // Middleware
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(__dirname));
 app.use(session({
   secret: 'panelku-secret-key',
   resave: false,
