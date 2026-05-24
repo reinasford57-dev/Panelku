@@ -1,0 +1,61 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "Panel Plesk Basic",
+      "category": "panel",
+      "basePrice": 50000,
+      "description": "Hosting panel Plesk untuk 10 domain.",
+      "levelPrices": {
+        "user": 0,
+        "admin": 25000,
+        "owner": 50000
+      }
+    },
+    {
+      "id": 2,
+      "name": "Nokos Telkomsel 1 Bulan",
+      "category": "nokos",
+      "basePrice": 15000,
+      "description": "Nomor kosong aktif Telkomsel.",
+      "levelPrices": {
+        "user": 0,
+        "admin": 0,
+        "owner": 0
+      }
+    },
+    {
+      "id": 3,
+      "name": "VPS NVMe Singapura",
+      "category": "vps",
+      "basePrice": 100000,
+      "description": "VPS dengan akses penuh, pilih level.",
+      "levelPrices": {
+        "user": 0,
+        "admin": 25000,
+        "owner": 50000
+      }
+    },
+    {
+      "id": 4,
+      "name": "VPS High CPU Jakarta",
+      "category": "vps",
+      "basePrice": 200000,
+      "description": "CPU 4 core, RAM 8GB, pilih level akses.",
+      "levelPrices": {
+        "user": 0,
+        "admin": 30000,
+        "owner": 60000
+      }
+    }
+  ],
+  "orders": []
+}
+{
+  "users": [
+    { "id": 1, "username": "admin", "password": "admin123", "role": "admin" },
+    { "id": 2, "username": "owner", "password": "owner123", "role": "owner" }
+  ],
+  "products": [ ... ],
+  "orders": [ ... ]
+}

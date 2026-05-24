@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PanelKu - Marketplace Panel, Nokos & VPS</title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; }
+        html { scroll-behavior: smooth; }
+        ::selection { background: #10b981; color: white; }
+        .nav-glass { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .product-card { transition: all 0.3s cubic-bezier(0.25,0.46,0.45,0.94); border: 1px solid rgba(0,0,0,0.04); }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 40px -12px rgba(0,0,0,0.12), 0 8px 24px -6px rgba(0,0,0,0.05); border-color: rgba(16,185,129,0.15); }
+        .product-card .card-icon { transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .product-card:hover .card-icon { transform: scale(1.08) rotate(-2deg); }
+        .btn-primary { background: #10b981; transition: all 0.2s ease; }
+        .btn-primary:hover { background: #059669; transform: scale(1.02); box-shadow: 0 8px 24px rgba(16,185,129,0.35); }
+        .btn-primary:active { transform: scale(0.96); }
+        .cart-sidebar { transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.25s ease; transform: translateX(100%); opacity: 0; pointer-events: none; }
+        .cart-sidebar.open { transform: translateX(0); opacity: 1; pointer-events: all; }
+        .cart-backdrop { transition: opacity 0.3s ease; opacity: 0; pointer-events: none; }
+        .cart-backdrop.open { opacity: 1; pointer-events: all; }
+        .modal-content { transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease; transform: scale(0.92) translateY(20px); opacity: 0; }
+        .modal-content.open { transform: scale(1) translateY(0); opacity: 1; }
+        .cart-badge { animation: pulse-badge 2s infinite; }
+        @keyframes pulse-badge { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        .toast { transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: #059669; }
+        .category-tag { font-size: 0.65rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; padding: 0.2rem 0.7rem; border-radius: 999px; }
+        select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+        .empty-cart-icon { font-size: 4rem; color: #d1d5db; }
+        /* Dashboard table */
+        .dashboard-table { border-collapse: collapse; width: 100%; }
+        .dashboard-table th { background: #f1f5f9; text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #374151; }
+        .dashboard-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #e5e7eb; }
+        .dashboard-table tr:hover { background: #f8fafc; }
+        /* Dropdown user */
+        .user-dropdown { display: none; }
+        .user-dropdown.open { display: block; }
+    </style>
+</head>
+<body>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="nav-glass fixed top-0 left-0 right-0 z-50 h-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2.5 group">
+            <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center text-white text-sm font-extrabold shadow-sm">P</div>
+            <span class="text-xl font-extrabold text-gray-800 tracking-tight">PanelKu</span>
+        </a>
+
+        <div class="hidden md:flex flex-1 max-w-md mx-8 relative">
+            <div class="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-500 focus-within:ring-2 focus-within:ring-green-500/30 focus-within:border-green-400 transition">
+                <i class="fas fa-search text-gray-400 mr-3"></i>
+                <span class="text-gray-400">Cari panel, nokos, VPS...</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3 sm:gap-5">
+            <button onclick="toggleCart()" class="relative flex items-center gap-1.5 text-gray-600 hover:text-green-600 transition group">
+                <i class="fas fa-shopping-cart text-xl group-hover:scale-110 transition"></i>
+                <span class="text-sm font-medium hidden sm:inline">Keranjang</span>
+                <span id="cart-count" class="cart-badge absolute -top-1.5 -right-2.5 sm:static sm:ml-1 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center sm:bg-green-500 sm:text-white">0</span>
+            </button>
+
+            <div id="auth-container">
+                <!-- Akan diisi oleh JS -->
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="mt-16 bg-gradient-to-r from-green-600 via-emerald-500 to-teal-500 text-white relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
+    <div class="max-w-7xl mx-auto px-4 py-10 md:py-14 relative z-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight tracking-tight">
+                    Beli Panel, Nokos & VPS
+                    <span class="block text-green-200">dengan Harga Terbaik</span>
+                </h1>
+                <p class="mt-3 text-green-100 text-lg md:text-xl max-w-xl opacity-90">
+                    Pilih tingkatan akses sesuai kebutuhanmu — User, Admin, atau Owner.
+                </p>
+            </div>
+            <div class="mt-4 md:mt-0 flex gap-3">
+                <span class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium"><i class="fas fa-shield-alt text-green-200"></i> Aman</span>
+                <span class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium"><i class="fas fa-bolt text-green-200"></i> Instant</span>
+            </div>
+        </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0">
+        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 60L60 50C120 40 240 20 360 20C480 20 600 40 720 45C840 50 960 40 1080 35C1200 30 1320 30 1380 30L1440 30V60H1380C1320 60 1200 60 1080 60C960 60 840 60 720 60C600 60 480 60 360 60C240 60 120 60 60 60H0Z" fill="#f8fafc"/>
+        </svg>
+    </div>
+</section>
+
+<!-- ========== MAIN CONTENT ========== -->
+<section class="max-w-7xl mx-auto px-4 py-10 md:py-14">
+    <div id="main-content">
+        <!-- Header produk -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight">
+                    <i class="fas fa-store text-green-500 mr-2"></i> Produk Tersedia
+                </h2>
+                <p class="text-gray-500 text-sm mt-1">Pilih produk dan tentukan level aksesmu</p>
+            </div>
+        </div>
+        <!-- Grid Produk -->
+        <div id="product-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6">
+            <!-- Products rendered by JS -->
+        </div>
+        <div id="loading-state" class="col-span-full text-center py-16">
+            <div class="inline-block w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+            <p class="text-gray-400 mt-4 text-sm">Memuat produk...</p>
+        </div>
+    </div>
+</section>
+
+<!-- ========== MODAL PRODUK ========== -->
+<div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div id="modal-content-box" class="modal-content bg-white rounded-2xl max-w-md w-full relative z-10 shadow-2xl overflow-hidden">
+        <div id="modal-header" class="h-24 bg-gradient-to-r from-green-500 to-emerald-600 flex items-center justify-center text-white text-5xl relative">
+            <i id="modal-icon" class="fas fa-cube"></i>
+            <button onclick="closeModal()" class="absolute top-3 right-4 text-white/70 hover:text-white text-2xl transition">&times;</button>
+        </div>
+        <div class="p-6">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 id="modal-title" class="text-xl font-extrabold text-gray-800">Nama Produk</h3>
+                    <span id="modal-category" class="category-tag bg-gray-100 text-gray-500 mt-1 inline-block">panel</span>
+                </div>
+            </div>
+            <p id="modal-desc" class="text-gray-500 text-sm mt-2 leading-relaxed">Deskripsi produk</p>
+            <div class="mt-5 pt-4 border-t border-gray-100">
+                <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-tag text-green-500 mr-1"></i> Pilih Tingkatan Akses</label>
+                <select id="level-select" class="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:ring-2 focus:ring-green-500/40 focus:border-green-400 outline-none transition text-sm">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="owner">Owner</option>
+                </select>
+                <p id="level-note" class="text-xs text-gray-400 mt-1.5 italic">* Harga akan menyesuaikan dengan level yang dipilih</p>
+            </div>
+            <div class="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <span class="text-xs text-gray-400 block">Total harga</span>
+                    <span id="modal-price" class="text-2xl font-extrabold text-green-600">Rp0</span>
+                </div>
+                <button onclick="addToCart()" class="btn-primary flex-1 sm:flex-none text-white px-6 py-3 rounded-xl font-semibold flex items-center justify-center gap-2 text-sm">
+                    <i class="fas fa-cart-plus"></i> Tambah ke Keranjang
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== CART SIDEBAR ========== -->
+<div id="cart-backdrop" class="cart-backdrop fixed inset-0 bg-black/40 z-40" onclick="toggleCart()"></div>
+<div id="cart-sidebar" class="cart-sidebar fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-white shadow-2xl flex flex-col">
+    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-shopping-cart text-green-500 text-xl"></i>
+            <h3 class="text-lg font-extrabold text-gray-800">Keranjang</h3>
+            <span id="cart-sidebar-count" class="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-0.5 rounded-full">0</span>
+        </div>
+        <button onclick="toggleCart()" class="text-gray-400 hover:text-gray-600 text-2xl transition">&times;</button>
+    </div>
+    <div id="cart-items" class="flex-1 overflow-y-auto px-6 py-4 space-y-3"></div>
+    <div id="cart-empty" class="flex-1 flex flex-col items-center justify-center px-6 text-center hidden">
+        <div class="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center mb-4"><i class="fas fa-shopping-bag text-gray-300 text-3xl"></i></div>
+        <p class="text-gray-500 font-medium">Keranjang masih kosong</p>
+        <p class="text-gray-400 text-sm">Yuk, tambah produk favorite kamu!</p>
+        <button onclick="toggleCart()" class="mt-4 text-green-600 text-sm font-semibold hover:underline">Lihat produk &rarr;</button>
+    </div>
+    <div class="border-t border-gray-100 p-6 bg-gray-50/50">
+        <div class="flex items-center justify-between mb-4">
+            <span class="text-gray-600 text-sm font-medium">Total</span>
+            <span id="cart-total" class="text-xl font-extrabold text-green-600">Rp0</span>
+        </div>
+        <button id="checkout-btn" onclick="checkout()" class="btn-primary w-full text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+            <i class="fas fa-credit-card"></i> Checkout Sekarang
+        </button>
+        <p class="text-[10px] text-gray-400 text-center mt-3">* Pesanan akan diproses setelah pembayaran</p>
+    </div>
+</div>
+
+<!-- ========== MODAL LOGIN ========== -->
+<div id="login-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeLoginModal()"></div>
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 relative z-10 shadow-2xl">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-extrabold text-gray-800">Masuk ke PanelKu</h3>
+            <button onclick="closeLoginModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        </div>
+        <form id="login-form">
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input type="text" id="login-username" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-green-500/40 outline-none">
+            </div>
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input type="password" id="login-password" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-green-500/40 outline-none">
+            </div>
+            <button type="submit" class="btn-primary w-full text-white py-2.5 rounded-xl font-bold text-sm">Login</button>
+        </form>
+        <div id="login-error" class="text-red-500 text-sm mt-3 hidden"></div>
+    </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div id="toast" class="toast fixed bottom-6 right-6 z-50 bg-white border border-gray-100 shadow-2xl rounded-xl px-5 py-3.5 flex items-center gap-3 max-w-sm">
+    <div id="toast-icon" class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0"><i class="fas fa-check text-sm"></i></div>
+    <div>
+        <p id="toast-title" class="text-sm font-semibold text-gray-800">Berhasil!</p>
+        <p id="toast-message" class="text-xs text-gray-500">Produk ditambahkan ke keranjang.</p>
+    </div>
+    <button onclick="hideToast()" class="ml-auto text-gray-400 hover:text-gray-600">&times;</button>
+</div>
+
+<!-- ========== JAVASCRIPT ========== -->
+<script>
+    // ============================================================
+    //  GLOBAL STATE
+    // ============================================================
+    let products = [];
+    let cart = [];
+    let currentProduct = null;
+    let currentUser = null;
+    let isCartOpen = false;
+    const levelPriceMap = {};
+
+    // ============================================================
+    //  UTILITY FUNCTIONS
+    // ============================================================
+    function showToast(type, title, message) {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toast-icon');
+        const tTitle = document.getElementById('toast-title');
+        const tMsg = document.getElementById('toast-message');
+        if (window.toastTimeout) clearTimeout(window.toastTimeout);
+        const configs = {
+            success: { icon: 'fa-check', bg: 'bg-green-100', color: 'text-green-600' },
+            info: { icon: 'fa-info', bg: 'bg-blue-100', color: 'text-blue-600' },
+            error: { icon: 'fa-times', bg: 'bg-red-100', color: 'text-red-600' }
+        };
+        const cfg = configs[type] || configs.info;
+        icon.className = `w-8 h-8 rounded-full ${cfg.bg} ${cfg.color} flex items-center justify-center flex-shrink-0`;
+        icon.innerHTML = `<i class="fas ${cfg.icon} text-sm"></i>`;
+        tTitle.innerText = title;
+        tMsg.innerText = message;
+        toast.classList.remove('show');
+        void toast.offsetWidth;
+        toast.classList.add('show');
+        window.toastTimeout = setTimeout(() => { toast.classList.remove('show'); }, 3500);
+    }
+
+    function hideToast() {
+        const toast = document.getElementById('toast');
+        toast.classList.remove('show');
+        if (window.toastTimeout) clearTimeout(window.toastTimeout);
+    }
+
+    // ============================================================
+    //  FETCH PRODUK
+    // ============================================================
+    async function fetchProducts() {
+        try {
+            const res = await fetch('/api/products');
+            if (!res.ok) throw new Error('Gagal memuat produk');
+            products = await res.json();
+            products.forEach(p => { levelPriceMap[p.id] = p.levelPrices || { user:0, admin:0, owner:0 }; });
+            renderProducts();
+            document.getElementById('loading-state').style.display = 'none';
+        } catch (err) {
+            console.error(err);
+            document.getElementById('loading-state').innerHTML = `
+                <div class="text-center">
+                    <i class="fas fa-exclamation-circle text-red-400 text-4xl mb-3"></i>
+                    <p class="text-gray-500">Gagal memuat produk. Coba refresh.</p>
+                    <button onclick="fetchProducts()" class="mt-3 text-green-600 text-sm font-semibold hover:underline"><i class="fas fa-sync-alt mr-1"></i> Ulangi</button>
+                </div>`;
+        }
+    }
+
+    // ============================================================
+    //  RENDER PRODUK
+    // ============================================================
+    function renderProducts() {
+        const container = document.getElementById('product-container');
+        container.innerHTML = products.map(p => {
+            const catColor = { panel: 'from-indigo-500 to-indigo-600', nokos: 'from-purple-500 to-purple-600', vps: 'from-blue-500 to-blue-600' } [p.category] || 'from-gray-500 to-gray-600';
+            const catIcon = { panel: 'fa-cogs', nokos: 'fa-sim-card', vps: 'fa-server' } [p.category] || 'fa-cube';
+            const catLabel = { panel: 'Panel', nokos: 'Nokos', vps: 'VPS' } [p.category] || 'Lainnya';
+            return `
+            <div class="product-card bg-white rounded-2xl overflow-hidden cursor-pointer" onclick="openModal(${p.id})">
+                <div class="h-32 bg-gradient-to-br ${catColor} flex items-center justify-center text-white relative">
+                    <div class="card-icon text-5xl opacity-90"><i class="fas ${catIcon}"></i></div>
+                    <span class="absolute top-3 right-3 category-tag bg-white/20 text-white text-[10px] backdrop-blur-sm">${catLabel}</span>
+                </div>
+                <div class="p-5">
+                    <div class="flex items-start justify-between">
+                        <h3 class="text-base font-bold text-gray-800 leading-tight">${p.name}</h3>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-1 line-clamp-2">${p.description || ''}</p>
+                    <div class="mt-4 flex items-end justify-between">
+                        <div>
+                            <span class="text-xs text-gray-400 block">Mulai dari</span>
+                            <span class="text-lg font-extrabold text-green-600">Rp${p.basePrice.toLocaleString()}</span>
+                        </div>
+                        <button class="w-9 h-9 rounded-full bg-green-50 text-green-600 hover:bg-green-600 hover:text-white transition flex items-center justify-center"><i class="fas fa-plus text-sm"></i></button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ============================================================
+    //  MODAL PRODUK
+    // ============================================================
+    function openModal(productId) {
+        currentProduct = products.find(p => p.id === productId);
+        if (!currentProduct) return;
+        const modal = document.getElementById('product-modal');
+        const content = document.getElementById('modal-content-box');
+        document.getElementById('modal-title').innerText = currentProduct.name;
+        document.getElementById('modal-desc').innerText = currentProduct.description || '';
+        document.getElementById('modal-category').innerText = (currentProduct.category || 'Lainnya').toUpperCase();
+        const catColors = { panel: 'from-indigo-500 to-indigo-600', nokos: 'from-purple-500 to-purple-600', vps: 'from-blue-500 to-blue-600' };
+        const catIcons = { panel: 'fa-cogs', nokos: 'fa-sim-card', vps: 'fa-server' };
+        const header = document.getElementById('modal-header');
+        header.className = `h-24 bg-gradient-to-r ${catColors[currentProduct.category] || 'from-gray-500 to-gray-600'} flex items-center justify-center text-white text-5xl relative`;
+        document.getElementById('modal-icon').className = `fas ${catIcons[currentProduct.category] || 'fa-cube'}`;
+        document.getElementById('level-select').value = 'user';
+        updateModalPrice();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => { content.classList.add('open'); }, 20);
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('product-modal');
+        const content = document.getElementById('modal-content-box');
+        content.classList.remove('open');
+        setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 250);
+    }
+
+    function updateModalPrice() {
+        if (!currentProduct) return;
+        const level = document.getElementById('level-select').value;
+        const extra = levelPriceMap[currentProduct.id]?.[level] || 0;
+        const total = currentProduct.basePrice + extra;
+        document.getElementById('modal-price').innerText = 'Rp' + total.toLocaleString();
+        const note = document.getElementById('level-note');
+        note.innerText = extra > 0 ? `* Tambahan Rp${extra.toLocaleString()} untuk level ${level}` : '* Harga sesuai dengan level yang dipilih';
+    }
+    document.getElementById('level-select').addEventListener('change', updateModalPrice);
+
+    // ============================================================
+    //  CART FUNCTIONS
+    // ============================================================
+    function addToCart() {
+        if (!currentProduct) return;
+        const level = document.getElementById('level-select').value;
+        const extra = levelPriceMap[currentProduct.id]?.[level] || 0;
+        const price = currentProduct.basePrice + extra;
+        const existing = cart.find(item => item.productId === currentProduct.id && item.level === level);
+        if (existing) {
+            existing.qty += 1;
+            showToast('info', 'Jumlah diperbarui', `${currentProduct.name} (${level}) ditambah`);
+        } else {
+            cart.push({
+                productId: currentProduct.id,
+                name: currentProduct.name,
+                category: currentProduct.category,
+                level: level,
+                price: price,
+                qty: 1
+            });
+            showToast('success', 'Ditambahkan ke keranjang', `${currentProduct.name} (${level})`);
+        }
+        updateCartUI();
+        closeModal();
+        if (!isCartOpen) toggleCart();
+    }
+
+    function removeFromCart(index) {
+        const item = cart[index];
+        cart.splice(index, 1);
+        updateCartUI();
+        showToast('info', 'Dihapus', `${item.name} dihapus dari keranjang`);
+    }
+
+    function updateCartUI() {
+        const count = cart.reduce((sum, item) => sum + item.qty, 0);
+        document.getElementById('cart-count').innerText = count;
+        document.getElementById('cart-sidebar-count').innerText = count;
+        const container = document.getElementById('cart-items');
+        const empty = document.getElementById('cart-empty');
+        const totalSpan = document.getElementById('cart-total');
+        if (cart.length === 0) {
+            container.innerHTML = '';
+            empty.classList.remove('hidden');
+            totalSpan.innerText = 'Rp0';
+            document.getElementById('checkout-btn').disabled = true;
+            document.getElementById('checkout-btn').style.opacity = '0.5';
+            return;
+        }
+        empty.classList.add('hidden');
+        document.getElementById('checkout-btn').disabled = false;
+        document.getElementById('checkout-btn').style.opacity = '1';
+        let total = 0;
+        container.innerHTML = cart.map((item, idx) => {
+            const subtotal = item.price * item.qty;
+            total += subtotal;
+            const catEmoji = { panel: '⚙️', nokos: '📱', vps: '🖥️' } [item.category] || '📦';
+            return `
+            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-green-200 transition">
+                <div class="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center text-lg flex-shrink-0">${catEmoji}</div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-gray-800 truncate">${item.name}</p>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <span class="capitalize">${item.level}</span>
+                        <span class="text-gray-300">•</span>
+                        <span>${item.qty}x</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-bold text-gray-800">Rp${(item.price * item.qty).toLocaleString()}</span>
+                    <button onclick="removeFromCart(${idx})" class="text-gray-400 hover:text-red-500 transition text-sm"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div>`;
+        }).join('');
+        totalSpan.innerText = 'Rp' + total.toLocaleString();
+    }
+
+    function toggleCart() {
+        isCartOpen = !isCartOpen;
+        const sidebar = document.getElementById('cart-sidebar');
+        const backdrop = document.getElementById('cart-backdrop');
+        if (isCartOpen) {
+            sidebar.classList.add('open');
+            backdrop.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        } else {
+            sidebar.classList.remove('open');
+            backdrop.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    }
+
+    async function checkout() {
+        if (cart.length === 0) { showToast('error', 'Keranjang kosong', 'Tambahkan produk terlebih dahulu'); return; }
+        const items = cart.map(item => ({ productId: item.productId, level: item.level, qty: item.qty }));
+        const btn = document.getElementById('checkout-btn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items, userId: currentUser ? currentUser.username : 'anonymous' })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Gagal checkout');
+            cart = [];
+            updateCartUI();
+            toggleCart();
+            showToast('success', '🎉 Pesanan berhasil!', `Total: Rp${data.order.total.toLocaleString()}`);
+        } catch (err) {
+            showToast('error', 'Checkout gagal', err.message);
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    }
+
+    // ============================================================
+    //  AUTHENTICATION
+    // ============================================================
+    async function checkSession() {
+        try {
+            const res = await fetch('/api/me');
+            if (res.ok) {
+                currentUser = await res.json();
+                updateNavbar();
+            }
+        } catch (err) {}
+    }
+
+    function updateNavbar() {
+        const container = document.getElementById('auth-container');
+        if (currentUser) {
+            container.innerHTML = `
+                <div class="relative">
+                    <button onclick="toggleUserDropdown()" class="bg-green-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition hover:bg-green-700">
+                        <i class="fas fa-user-circle"></i> ${currentUser.username}
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div id="user-dropdown" class="user-dropdown absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl border border-gray-100 overflow-hidden z-50">
+                        <div class="py-1">
+                            <span class="block px-4 py-2 text-xs text-gray-500 border-b">Role: ${currentUser.role}</span>
+                            ${currentUser.role === 'admin' || currentUser.role === 'owner' ? `<a href="#" onclick="showDashboard(); toggleUserDropdown();" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Dashboard</a>` : ''}
+                            <button onclick="logout(); toggleUserDropdown();" class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-50">Logout</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <button onclick="openLoginModal()" class="bg-green-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-green-700 transition shadow-sm">Masuk</button>
+            `;
+        }
+    }
+
+    function toggleUserDropdown() {
+        const dd = document.getElementById('user-dropdown');
+        if (dd) dd.classList.toggle('open');
+    }
+
+    function openLoginModal() {
+        document.getElementById('login-modal').classList.remove('hidden');
+        document.getElementById('login-modal').classList.add('flex');
+        document.getElementById('login-error').classList.add('hidden');
+    }
+
+    function closeLoginModal() {
+        document.getElementById('login-modal').classList.add('hidden');
+        document.getElementById('login-modal').classList.remove('flex');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('login-username').value;
+        const password = document.getElementById('login-password').value;
+        const errorDiv = document.getElementById('login-error');
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (!res.ok) { errorDiv.textContent = data.error; errorDiv.classList.remove('hidden'); return; }
+            errorDiv.classList.add('hidden');
+            currentUser = data.user;
+            closeLoginModal();
+            updateNavbar();
+            if (currentUser.role === 'admin' || currentUser.role === 'owner') {
+                showDashboard();
+            }
+        } catch (err) {
+            errorDiv.textContent = 'Terjadi kesalahan, coba lagi';
+            errorDiv.classList.remove('hidden');
+        }
+    });
+
+    async function logout() {
+        await fetch('/api/logout', { method: 'POST' });
+        currentUser = null;
+        updateNavbar();
+        hideDashboard();
+        showToast('info', 'Logout berhasil', 'Sampai jumpa!');
+    }
+
+    // ============================================================
+    //  DASHBOARD ADMIN/OWNER
+    // ============================================================
+    function showDashboard() {
+        const main = document.getElementById('main-content');
+        main.innerHTML = `
+            <div class="bg-white rounded-2xl shadow-md p-6">
+                <h2 class="text-2xl font-extrabold text-gray-800 mb-4">📊 Dashboard ${currentUser.role}</h2>
+                <div class="flex gap-4 mb-6 flex-wrap">
+                    <button class="px-4 py-2 bg-green-500 text-white rounded-lg text-sm font-semibold hover:bg-green-600 transition" onclick="loadProductsAdmin()">Kelola Produk</button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition" onclick="loadOrdersAdmin()">Lihat Pesanan</button>
+                    <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition" onclick="hideDashboard()">Kembali ke Toko</button>
+                </div>
+                <div id="dashboard-content"></div>
+            </div>
+        `;
+        loadProductsAdmin();
+    }
+
+    function hideDashboard() {
+        const main = document.getElementById('main-content');
+        main.innerHTML = `
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-800 tracking-tight">
+                        <i class="fas fa-store text-green-500 mr-2"></i> Produk Tersedia
+                    </h2>
+                    <p class="text-gray-500 text-sm mt-1">Pilih produk dan tentukan level aksesmu</p>
+                </div>
+            </div>
+            <div id="product-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 md:gap-6"></div>
+        `;
+        renderProducts();
+    }
+
+    async function loadProductsAdmin() {
+        const container = document.getElementById('dashboard-content');
+        const res = await fetch('/api/products');
+        const products = await res.json();
+        container.innerHTML = `
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
+                <h3 class="text-lg font-bold text-gray-800">Daftar Produk</h3>
+                <button onclick="showAddProductForm()" class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-600 transition">+ Tambah Produk</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Kategori</th>
+                            <th>Harga Dasar</th>
+                            <th>Level Prices</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${products.map(p => `
+                            <tr>
+                                <td class="font-medium">${p.name}</td>
+                                <td class="capitalize">${p.category}</td>
+                                <td>Rp${p.basePrice.toLocaleString()}</td>
+                                <td class="text-xs">User: Rp${p.levelPrices.user}, Admin: Rp${p.levelPrices.admin}, Owner: Rp${p.levelPrices.owner}</td>
+                                <td>
+                                    <button onclick="editProduct(${p.id})" class="text-blue-500 hover:underline mr-2">Edit</button>
+                                    <button onclick="deleteProduct(${p.id})" class="text-red-500 hover:underline">Hapus</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    function showAddProductForm() {
+        const container = document.getElementById('dashboard-content');
+        container.innerHTML = `
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Tambah Produk Baru</h3>
+            <form id="add-product-form" class="space-y-3 max-w-lg">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nama</label>
+                    <input type="text" id="add-name" required class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-green-500/40 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Kategori</label>
+                    <select id="add-category" class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-green-500/40 outline-none">
+                        <option value="panel">Panel</option>
+                        <option value="nokos">Nokos</option>
+                        <option value="vps">VPS</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Harga Dasar</label>
+                    <input type="number" id="add-basePrice" required class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-green-500/40 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Deskripsi</label>
+                    <input type="text" id="add-desc" class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-green-500/40 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Level Prices (JSON)</label>
+                    <input type="text" id="add-levelPrices" value='{"user":0,"admin":0,"owner":0}' class="w-full border rounded-xl px-3 py-2 focus:ring-2 focus:ring-green-500/40 outline-none">
+                </div>
+                <div class="flex gap-3">
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-600 transition">Simpan</button>
+                    <button type="button" onclick="loadProductsAdmin()" class="text-gray-500 px-4 py-2 hover:text-gray-700 transition">Batal</button>
+                </div>
+            </form>
+        `;
+        document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('add-name').value,
+                category: document.getElementById('add-category').value,
+                basePrice: parseInt(document.getElementById('add-basePrice').value),
+                description: document.getElementById('add-desc').value,
+                levelPrices: JSON.parse(document.getElementById('add-levelPrices').value)
+            };
+            await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            loadProductsAdmin();
+            showToast('success', 'Produk ditambahkan', 'Produk berhasil disimpan');
+        });
+    }
+
+    async function deleteProduct(id) {
+        if (!confirm('Yakin ingin menghapus produk ini?')) return;
+        await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        loadProductsAdmin();
+        showToast('info', 'Produk dihapus', 'Produk telah dihapus dari database');
+    }
+
+    function editProduct(id) {
+        // Implementasi sederhana: arahkan ke form edit, bisa dikembangkan
+        alert('Fitur edit belum diimplementasikan. Silakan hapus lalu tambah ulang.');
+    }
+
+    async function loadOrdersAdmin() {
+        const container = document.getElementById('dashboard-content');
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+        if (orders.length === 0) {
+            container.innerHTML = `<p class="text-gray-500 text-center py-8">Belum ada pesanan.</p>`;
+            return;
+        }
+        container.innerHTML = `
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Daftar Pesanan</h3>
+            <div class="overflow-x-auto">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Item</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Tanggal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(o => `
+                            <tr>
+                                <td>#${o.id}</td>
+                                <td>${o.userId}</td>
+                                <td>${o.items.map(i => `${i.name} (${i.level}) x${i.qty}`).join(', ')}</td>
+                                <td>Rp${o.total.toLocaleString()}</td>
+                                <td><span class="px-2 py-1 rounded-full text-xs ${o.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">${o.status}</span></td>
+                                <td>${new Date(o.createdAt).toLocaleString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    // ============================================================
+    //  KEYBOARD SHORTCUTS
+    // ============================================================
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (document.getElementById('product-modal').classList.contains('flex')) closeModal();
+            if (isCartOpen) toggleCart();
+            if (!document.getElementById('login-modal').classList.contains('hidden')) closeLoginModal();
+        }
+    });
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    checkSession();
+    fetchProducts();
+    updateCartUI();
+</script>
+</body>
+</html>
