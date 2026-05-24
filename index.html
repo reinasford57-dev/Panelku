@@ -508,6 +508,22 @@
         }
     }
 
+    // Fungsi untuk membuka modal pembayaran QR
+function showPaymentQR(orderId) {
+  const modal = document.getElementById('payment-modal');
+  const img = document.getElementById('qr-image');
+  // Generate QR dengan orderId
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PanelKu-Order-${orderId}`;
+  document.getElementById('qr-instruction').innerText = `Scan QR untuk order #${orderId}`;
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closePaymentModal() {
+  document.getElementById('payment-modal').classList.add('hidden');
+  document.getElementById('payment-modal').classList.remove('flex');
+}
+
     // ============================================================
     //  AUTHENTICATION
     // ============================================================
