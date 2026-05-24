@@ -230,6 +230,26 @@
     <button onclick="hideToast()" class="ml-auto text-gray-400 hover:text-gray-600">&times;</button>
 </div>
 
+    <!-- ========== MODAL PEMBAYARAN QR ========== -->
+<div id="payment-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closePaymentModal()"></div>
+  <div class="bg-white rounded-2xl max-w-sm w-full p-6 relative z-10 shadow-2xl text-center">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-xl font-extrabold text-gray-800">💳 Pembayaran QR</h3>
+      <button onclick="closePaymentModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+    <div id="qr-container" class="flex flex-col items-center">
+      <div class="w-48 h-48 bg-gray-100 rounded-xl flex items-center justify-center mb-3">
+        <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PanelKu" alt="QR Payment" class="w-full h-full object-contain" />
+      </div>
+      <p id="qr-instruction" class="text-sm text-gray-600">Scan QR dengan dompet digital kamu</p>
+      <div class="mt-4 flex gap-2">
+        <button onclick="closePaymentModal()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Selesai</button>
+      </div>
+    </div>
+  </div>
+</div>
+    
 <!-- ========== JAVASCRIPT ========== -->
 <script>
     // ============================================================
