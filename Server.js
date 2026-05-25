@@ -7,16 +7,16 @@ const PORT = 3000;
 
 // Middleware
 app.use(express.json());
-app.use(express.static(__dirname)); // ← kunci agar index.html terbaca
+app.use(express.static(__dirname));
 
 app.use(session({
-  secret: 'panelku-secret-key',
+  secret: 'welper-secret-key',
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false, maxAge: 24*60*60*1000 }
 }));
 
-const DB_PATH = path.join(__dirname, 'Data.json'); // ← perhatikan huruf besar D
+const DB_PATH = path.join(__dirname, 'Data.json');
 
 function readDB() {
   try {
@@ -31,7 +31,7 @@ function writeDB(data) {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// --- Auth ---
+// --- AUTH ENDPOINTS ---
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
   const db = readDB();
@@ -53,17 +53,27 @@ app.get('/api/me', (req, res) => {
   res.json(req.session.user);
 });
 
-// --- Produk ---
+// --- PROTECTED ROUTES ---
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'login.html'));
+});
+
+app.get('/', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// --- PRODUCTS (public) ---
 app.get('/api/products', (req, res) => {
   const db = readDB();
   res.json(db.products);
 });
 
-// --- CRUD produk (admin/owner) ---
-function checkRole(role) {
+// --- CRUD PRODUCTS (admin/owner only) ---
+function checkRole(roles) {
   return (req, res, next) => {
     if (!req.session.user) return res.status(401).json({ error: 'Harap login' });
-    if (!role.includes(req.session.user.role)) return res.status(403).json({ error: 'Akses ditolak' });
+    if (!roles.includes(req.session.user.role)) return res.status(403).json({ error: 'Akses ditolak' });
     next();
   };
 }
@@ -91,7 +101,7 @@ app.delete('/api/products/:id', checkRole(['admin', 'owner']), (req, res) => {
   res.json({ message: 'Produk dihapus' });
 });
 
-// --- Order ---
+// --- ORDERS ---
 app.post('/api/orders', (req, res) => {
   const { items, userId } = req.body;
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -128,25 +138,9 @@ app.post('/api/orders', (req, res) => {
   res.status(201).json({ message: 'Pesanan berhasil dibuat', order: newOrder });
 });
 
-app.get('/api/orders', checkRole(['admin', 'owner']), (req, res) => {
+app.get('/api/orders', checkRole(['admin', 'owner', 'reseller']), (req, res) => {
   const db = readDB();
   res.json(db.orders);
-});
-
-// --- Tambahan: Endpoint dummy untuk pembayaran QR ---
-app.post('/api/payment-qr', (req, res) => {
-  // Simulasi pembayaran QR (dummy)
-  const { orderId } = req.body;
-  res.json({
-    success: true,
-    qrImage: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=PanelKu-Order-' + orderId,
-    message: 'Scan QR untuk menyelesaikan pembayaran'
-  });
-});
-
-// --- Fallback: kirim index.html untuk semua route yang tidak dikenal ---
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(PORT, () => {
