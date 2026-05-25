@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welper ID - Panel, VPS, Nokos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f8fafc; }
+        .nav-glass { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .product-card { transition: all 0.3s ease; border: 1px solid rgba(0,0,0,0.04); }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px -8px rgba(37,99,235,0.15); }
+        .btn-primary { background: #2563eb; transition: all 0.2s ease; }
+        .btn-primary:hover { background: #1d4ed8; transform: scale(1.02); }
+        .cart-sidebar { transition: transform 0.35s cubic-bezier(0.22,1,0.36,1); transform: translateX(100%); opacity: 0; pointer-events: none; }
+        .cart-sidebar.open { transform: translateX(0); opacity: 1; pointer-events: all; }
+        .cart-backdrop { transition: opacity 0.3s ease; opacity: 0; pointer-events: none; }
+        .cart-backdrop.open { opacity: 1; pointer-events: all; }
+        .modal-content { transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease; transform: scale(0.92) translateY(20px); opacity: 0; }
+        .modal-content.open { transform: scale(1) translateY(0); opacity: 1; }
+        .toast { transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease; opacity: 0; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #2563eb; border-radius: 8px; }
+        .filter-btn.active { background-color: #2563eb !important; color: white !important; }
+    </style>
+</head>
+<body>
+
+<!-- ========== NAVBAR ========== -->
+<nav class="nav-glass fixed top-0 left-0 right-0 z-50 h-16">
+    <div class="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+        <a href="#" class="flex items-center gap-2.5">
+            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-sm font-extrabold shadow">W</div>
+            <span class="text-xl font-extrabold text-blue-600 tracking-tight">Welper ID</span>
+        </a>
+        <div class="hidden md:flex flex-1 max-w-md mx-8 relative">
+            <div class="w-full pl-4 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-500 focus-within:ring-2 focus-within:ring-blue-500/30 transition">
+                <i class="fas fa-search text-gray-400 mr-3"></i>
+                <span class="text-gray-400">Cari Panel, VPS, Nokos...</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleCart()" class="relative text-gray-600 hover:text-blue-600 transition">
+                <i class="fas fa-shopping-cart text-xl"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+            </button>
+            <div id="auth-container"></div>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== HERO ========== -->
+<section class="mt-16 bg-gradient-to-r from-blue-600 to-blue-400 text-white relative overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 py-10 md:py-14 relative z-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight">Panel, VPS & Nokos</h1>
+                <p class="mt-2 text-blue-100 text-lg opacity-90">Pilih tingkatan akses sesuai kebutuhanmu</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex gap-3">
+                <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium"><i class="fas fa-shield-alt mr-1"></i> Aman</span>
+                <span class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-medium"><i class="fas fa-bolt mr-1"></i> Instant</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== PRODUCT SECTION ========== -->
+<section class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Filter & Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <h2 class="text-2xl font-extrabold text-gray-800">Produk Tersedia</h2>
+        <div class="flex gap-2 flex-wrap">
+            <button class="filter-btn active px-4 py-2 rounded-full border border-blue-600 text-blue-600 font-semibold text-sm hover:bg-blue-600 hover:text-white transition" onclick="filterProducts('all')">Semua</button>
+            <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 text-gray-600 font-semibold text-sm hover:border-blue-600 hover:text-blue-600 transition" onclick="filterProducts('panel')">Panel</button>
+            <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 text-gray-600 font-semibold text-sm hover:border-blue-600 hover:text-blue-600 transition" onclick="filterProducts('vps')">VPS</button>
+            <button class="filter-btn px-4 py-2 rounded-full border border-gray-300 text-gray-600 font-semibold text-sm hover:border-blue-600 hover:text-blue-600 transition" onclick="filterProducts('nokos')">Nokos</button>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+    <div id="product-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    <div id="loading-state" class="text-center py-12 hidden"><i class="fas fa-spinner fa-spin text-blue-600 text-3xl"></i></div>
+</section>
+
+<!-- ========== DASHBOARD ADMIN/RESELLER ========== -->
+<div id="dashboard-panel" class="hidden max-w-7xl mx-auto px-4 pb-12">
+    <div class="bg-white rounded-2xl shadow-md p-6">
+        <h2 class="text-2xl font-extrabold text-blue-700 mb-4">📊 Dashboard</h2>
+        <div class="flex gap-4 mb-6 flex-wrap">
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition" onclick="loadProductsAdmin()">Kelola Produk</button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition" onclick="loadOrdersAdmin()">Lihat Pesanan</button>
+            <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-200 transition" onclick="hideDashboard()">Kembali ke Toko</button>
+        </div>
+        <div id="admin-content"></div>
+    </div>
+</div>
+
+<!-- ========== PRODUCT MODAL ========== -->
+<div id="product-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
+    <div id="modal-content-box" class="modal-content bg-white rounded-2xl max-w-md w-full relative z-10 shadow-2xl overflow-hidden">
+        <div id="modal-header" class="h-20 bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white text-4xl relative">
+            <i id="modal-icon" class="fas fa-cube"></i>
+            <button onclick="closeModal()" class="absolute top-2 right-4 text-white/70 hover:text-white text-2xl">&times;</button>
+        </div>
+        <div class="p-6">
+            <div class="flex items-start justify-between"><h3 id="modal-title" class="text-xl font-extrabold text-gray-800">Produk</h3>
+            <span id="modal-category" class="text-xs bg-gray-100 px-3 py-1 rounded-full text-gray-500 font-semibold">kategori</span></div>
+            <p id="modal-desc" class="text-gray-500 text-sm mt-2">Deskripsi</p>
+            <div class="mt-4 border-t pt-4">
+                <label class="block text-sm font-semibold text-gray-700">Pilih Level Akses</label>
+                <select id="level-select" class="w-full border rounded-xl px-3 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500/40 outline-none mt-1">
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="owner">Owner</option>
+                </select>
+                <p id="level-note" class="text-xs text-gray-400 mt-1 italic">Harga menyesuaikan level</p>
+            </div>
+            <div class="mt-4 flex items-center justify-between">
+                <span id="modal-price" class="text-2xl font-extrabold text-blue-600">Rp0</span>
+                <button onclick="addToCart()" class="btn-primary text-white px-5 py-2.5 rounded-xl font-semibold flex items-center gap-2"><i class="fas fa-cart-plus"></i> Tambah</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== CART SIDEBAR ========== -->
+<div id="cart-backdrop" class="cart-backdrop fixed inset-0 bg-black/40 z-40" onclick="toggleCart()"></div>
+<div id="cart-sidebar" class="cart-sidebar fixed top-0 right-0 z-50 h-full w-full max-w-sm bg-white shadow-2xl flex flex-col">
+    <div class="flex items-center justify-between px-6 py-5 border-b">
+        <div class="flex items-center gap-3"><i class="fas fa-shopping-cart text-blue-600 text-xl"></i><h3 class="text-lg font-extrabold text-gray-800">Keranjang</h3><span id="cart-sidebar-count" class="bg-gray-100 px-2 py-0.5 rounded-full text-xs">0</span></div>
+        <button onclick="toggleCart()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+    </div>
+    <div id="cart-items" class="flex-1 overflow-y-auto px-6 py-4 space-y-3"></div>
+    <div id="cart-empty" class="flex-1 flex flex-col items-center justify-center px-6 hidden"><i class="fas fa-shopping-bag text-gray-300 text-4xl mb-3"></i><p class="text-gray-500 font-medium">Keranjang kosong</p></div>
+    <div class="border-t p-6 bg-gray-50/50">
+        <div class="flex items-center justify-between mb-3"><span class="text-gray-600 text-sm">Total</span><span id="cart-total" class="text-xl font-extrabold text-blue-600">Rp0</span></div>
+        <button id="checkout-btn" onclick="checkout()" class="btn-primary w-full text-white py-3 rounded-xl font-bold text-sm"><i class="fas fa-credit-card mr-2"></i> Checkout</button>
+    </div>
+</div>
+
+<!-- ========== TOAST ========== -->
+<div id="toast" class="toast fixed bottom-6 right-6 z-50 bg-white border shadow-xl rounded-xl px-5 py-3.5 flex items-center gap-3 max-w-sm">
+    <div id="toast-icon" class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center"><i class="fas fa-check text-sm"></i></div>
+    <div><p id="toast-title" class="text-sm font-semibold">Berhasil</p><p id="toast-message" class="text-xs text-gray-500">Pesan</p></div>
+</div>
+
+<!-- ========== JS ========== -->
+<script>
+    let products = [], cart = [], currentProduct = null, currentUser = null;
+    let filteredProducts = [];
+    const levelPriceMap = {};
+
+    // --- UTILS ---
+    function showToast(type, title, msg) {
+        const t = document.getElementById('toast'); const i = document.getElementById('toast-icon');
+        const cfg = { success: { icon: 'fa-check', bg: 'bg-green-100', color: 'text-green-600' }, error: { icon: 'fa-times', bg: 'bg-red-100', color: 'text-red-600' }, info: { icon: 'fa-info', bg: 'bg-blue-100', color: 'text-blue-600' } }[type] || cfg.success;
+        i.className = `w-8 h-8 rounded-full ${cfg.bg} ${cfg.color} flex items-center justify-center flex-shrink-0`;
+        i.innerHTML = `<i class="fas ${cfg.icon} text-sm"></i>`;
+        document.getElementById('toast-title').innerText = title;
+        document.getElementById('toast-message').innerText = msg;
+        t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // --- AUTH ---
+    async function checkSession() {
+        try {
+            const res = await fetch('/api/me');
+            if (res.ok) { currentUser = await res.json(); updateNavbar(); }
+            else { window.location.href = '/login'; }
+        } catch { window.location.href = '/login'; }
+    }
+    function updateNavbar() {
+        const c = document.getElementById('auth-container');
+        if (currentUser) {
+            const roleLabel = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+            c.innerHTML = `
+            <div class="relative">
+                <button onclick="document.getElementById('user-dropdown').classList.toggle('open')" class="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                    <i class="fas fa-user-circle"></i> ${currentUser.username} <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-xl border overflow-hidden z-50">
+                    <div class="py-1">
+                        <span class="block px-4 py-2 text-xs text-gray-500 border-b">${roleLabel}</span>
+                        ${['admin','owner','reseller'].includes(currentUser.role) ? `<a href="#" onclick="showDashboard(); document.getElementById('user-dropdown').classList.toggle('open')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Dashboard</a>` : ''}
+                        <button onclick="logout()" class="block w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-50">Logout</button>
+                    </div>
+                </div>
+            </div>`;
+        } else { c.innerHTML = `<button onclick="window.location.href='/login'" class="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-semibold shadow-sm">Masuk</button>`; }
+    }
+    async function logout() { await fetch('/api/logout', { method: 'POST' }); window.location.href = '/login'; }
+
+    // --- PRODUCTS ---
+    async function fetchProducts() {
+        try {
+            const res = await fetch('/api/products');
+            if (!res.ok) throw new Error();
+            products = await res.json();
+            products.forEach(p => levelPriceMap[p.id] = p.levelPrices || { user:0, admin:0, owner:0 });
+            filteredProducts = products;
+            renderProducts();
+        } catch { showToast('error', 'Error', 'Gagal memuat produk'); }
+    }
+    function renderProducts() {
+        const container = document.getElementById('product-container');
+        if (filteredProducts.length === 0) { container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400">Tidak ada produk ditemukan</div>`; return; }
+        container.innerHTML = filteredProducts.map(p => `
+            <div class="product-card bg-white rounded-xl overflow-hidden cursor-pointer" onclick="openModal(${p.id})">
+                <div class="h-24 bg-gradient-to-r from-blue-500 to-blue-300 flex items-center justify-center text-white text-3xl">
+                    <i class="fas ${p.category === 'panel' ? 'fa-cogs' : p.category === 'vps' ? 'fa-server' : 'fa-sim-card'}"></i>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-gray-800">${p.name}</h3>
+                    <span class="text-xs text-gray-400 block mt-1">${p.category}</span>
+                    <div class="mt-3 flex items-center justify-between">
+                        <span class="text-lg font-extrabold text-blue-600">Rp${p.basePrice.toLocaleString()}</span>
+                        <button class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition"><i class="fas fa-plus text-sm"></i></button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    function filterProducts(cat) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-blue-600', 'text-white'));
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.add('border-gray-300', 'text-gray-600'));
+        const activeBtn = document.querySelector(`.filter-btn[onclick="filterProducts('${cat}')"]`);
+        if (activeBtn) { activeBtn.classList.add('active', 'bg-blue-600', 'text-white'); activeBtn.classList.remove('border-gray-300', 'text-gray-600'); }
+        filteredProducts = cat === 'all' ? products : products.filter(p => p.category === cat);
+        renderProducts();
+    }
+
+    // --- MODAL ---
+    function openModal(id) {
+        currentProduct = products.find(p => p.id === id);
+        if (!currentProduct) return;
+        document.getElementById('modal-title').innerText = currentProduct.name;
+        document.getElementById('modal-desc').innerText = currentProduct.description;
+        document.getElementById('modal-category').innerText = currentProduct.category;
+        document.getElementById('modal-header').className = `h-20 bg-gradient-to-r from-blue-600 to-blue-400 flex items-center justify-center text-white text-4xl relative`;
+        document.getElementById('modal-icon').className = `fas ${currentProduct.category === 'panel' ? 'fa-cogs' : currentProduct.category === 'vps' ? 'fa-server' : 'fa-sim-card'}`;
+        document.getElementById('level-select').value = 'user';
+        updateModalPrice();
+        document.getElementById('product-modal').classList.remove('hidden');
+        document.getElementById('product-modal').classList.add('flex');
+        setTimeout(() => document.getElementById('modal-content-box').classList.add('open'), 20);
+    }
+    function closeModal() {
+        document.getElementById('modal-content-box').classList.remove('open');
+        setTimeout(() => { document.getElementById('product-modal').classList.add('hidden'); document.getElementById('product-modal').classList.remove('flex'); }, 250);
+    }
+    function updateModalPrice() {
+        const lvl = document.getElementById('level-select').value;
+        const extra = levelPriceMap[currentProduct.id]?.[lvl] || 0;
+        document.getElementById('modal-price').innerText = 'Rp' + (currentProduct.basePrice + extra).toLocaleString();
+    }
+    document.getElementById('level-select').addEventListener('change', updateModalPrice);
+
+    // --- CART ---
+    function addToCart() {
+        const lvl = document.getElementById('level-select').value;
+        const extra = levelPriceMap[currentProduct.id]?.[lvl] || 0;
+        const price = currentProduct.basePrice + extra;
+        const existing = cart.find(i => i.productId === currentProduct.id && i.level === lvl);
+        if (existing) existing.qty += 1;
+        else cart.push({ productId: currentProduct.id, name: currentProduct.name, category: currentProduct.category, level: lvl, price, qty: 1 });
+        updateCartUI();
+        closeModal();
+        showToast('success', 'Ditambahkan', `${currentProduct.name} (${lvl})`);
+        if (!document.getElementById('cart-sidebar').classList.contains('open')) toggleCart();
+    }
+    function removeFromCart(idx) { cart.splice(idx, 1); updateCartUI(); }
+    function updateCartUI() {
+        const count = cart.reduce((s,i) => s + i.qty, 0);
+        document.getElementById('cart-count').innerText = count;
+        document.getElementById('cart-sidebar-count').innerText = count;
+        const container = document.getElementById('cart-items');
+        const empty = document.getElementById('cart-empty');
+        const totalSpan = document.getElementById('cart-total');
+        if (cart.length === 0) { container.innerHTML = ''; empty.classList.remove('hidden'); totalSpan.innerText = 'Rp0'; document.getElementById('checkout-btn').disabled = true; return; }
+        empty.classList.add('hidden');
+        document.getElementById('checkout-btn').disabled = false;
+        let total = 0;
+        container.innerHTML = cart.map((item, idx) => {
+            const sub = item.price * item.qty; total += sub;
+            return `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div class="w-10 h-10 rounded-lg bg-white shadow flex items-center justify-center text-lg">${item.category === 'panel' ? '⚙️' : item.category === 'vps' ? '🖥️' : '📱'}</div>
+                <div class="flex-1"><p class="text-sm font-semibold text-gray-800 truncate">${item.name}</p><div class="text-xs text-gray-500">${item.level} • ${item.qty}x</div></div>
+                <span class="text-sm font-bold text-gray-800">Rp${sub.toLocaleString()}</span>
+                <button onclick="removeFromCart(${idx})" class="text-gray-400 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+            </div>`;
+        }).join('');
+        totalSpan.innerText = 'Rp' + total.toLocaleString();
+    }
+    function toggleCart() {
+        const s = document.getElementById('cart-sidebar'), b = document.getElementById('cart-backdrop');
+        if (s.classList.contains('open')) { s.classList.remove('open'); b.classList.remove('open'); document.body.style.overflow = ''; }
+        else { s.classList.add('open'); b.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    }
+    async function checkout() {
+        if (cart.length === 0) return showToast('error', 'Kosong', 'Keranjang masih kosong');
+        const items = cart.map(i => ({ productId: i.productId, level: i.level, qty: i.qty }));
+        const btn = document.getElementById('checkout-btn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...'; btn.disabled = true;
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items, userId: currentUser?.username || 'anonymous' })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            cart = []; updateCartUI(); toggleCart();
+            showToast('success', '🎉 Pesanan Berhasil!', `Total: Rp${data.order.total.toLocaleString()}`);
+        } catch (err) { showToast('error', 'Gagal', err.message); }
+        finally { btn.innerHTML = '<i class="fas fa-credit-card mr-2"></i> Checkout'; btn.disabled = false; }
+    }
+
+    // --- DASHBOARD ADMIN / OWNER / RESELLER ---
+    function showDashboard() {
+        document.getElementById('dashboard-panel').classList.remove('hidden');
+        document.querySelector('section.max-w-7xl.mx-auto.px-4.py-8').classList.add('hidden');
+        loadProductsAdmin();
+    }
+    function hideDashboard() {
+        document.getElementById('dashboard-panel').classList.add('hidden');
+        document.querySelector('section.max-w-7xl.mx-auto.px-4.py-8').classList.remove('hidden');
+    }
+    async function loadProductsAdmin() {
+        const container = document.getElementById('admin-content');
+        const res = await fetch('/api/products');
+        const p = await res.json();
+        const canEdit = ['admin', 'owner'].includes(currentUser.role);
+        container.innerHTML = `
+            <h3 class="text-lg font-bold mb-4">Daftar Produk ${canEdit ? `<button onclick="showAddProductForm()" class="ml-4 bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-semibold">+ Tambah</button>` : ''}</h3>
+            <div class="overflow-x-auto"><table class="w-full text-sm bg-gray-50 rounded-xl">
+                <thead><tr><th class="px-4 py-3 text-left">Nama</th><th class="px-4 py-3 text-left">Kategori</th><th class="px-4 py-3 text-left">Harga</th>${canEdit ? '<th class="px-4 py-3 text-left">Aksi</th>' : ''}</tr></thead>
+                <tbody>${p.map(pr => `<tr class="border-b">
+                    <td class="px-4 py-3 font-medium">${pr.name}</td>
+                    <td class="px-4 py-3 capitalize">${pr.category}</td>
+                    <td class="px-4 py-3">Rp${pr.basePrice.toLocaleString()}</td>
+                    ${canEdit ? `<td class="px-4 py-3"><button onclick="deleteProduct(${pr.id})" class="text-red-500 hover:underline text-xs">Hapus</button></td>` : ''}
+                </tr>`).join('')}</tbody>
+            </table></div>
+        `;
+    }
+    function showAddProductForm() {
+        document.getElementById('admin-content').innerHTML = `
+            <h3 class="text-lg font-bold mb-4">Tambah Produk</h3>
+            <form id="addForm" class="space-y-3 max-w-md">
+                <div><label class="block text-sm font-medium">Nama</label><input type="text" id="addName" required class="w-full border rounded px-3 py-2"></div>
+                <div><label class="block text-sm font-medium">Kategori</label>
+                <select id="addCategory" class="w-full border rounded px-3 py-2"><option value="panel">Panel</option><option value="vps">VPS</option><option value="nokos">Nokos</option></select></div>
+                <div><label class="block text-sm font-medium">Harga Dasar</label><input type="number" id="addPrice" required class="w-full border rounded px-3 py-2"></div>
+                <div><label class="block text-sm font-medium">Deskripsi</label><input type="text" id="addDesc" class="w-full border rounded px-3 py-2"></div>
+                <div><label class="block text-sm font-medium">Level Prices (JSON)</label><input type="text" id="addLevel" value='{"user":0,"admin":0,"owner":0}' class="w-full border rounded px-3 py-2"></div>
+                <div class="flex gap-3"><button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold">Simpan</button>
+                <button type="button" onclick="loadProductsAdmin()" class="text-gray-500 px-4 py-2">Batal</button></div>
+            </form>
+        `;
+        document.getElementById('addForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = { name: document.getElementById('addName').value, category: document.getElementById('addCategory').value, basePrice: parseInt(document.getElementById('addPrice').value), description: document.getElementById('addDesc').value, levelPrices: JSON.parse(document.getElementById('addLevel').value) };
+            await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            loadProductsAdmin(); showToast('success', 'Produk Ditambahkan', 'Berhasil disimpan');
+        });
+    }
+    async function deleteProduct(id) {
+        if (!confirm('Hapus produk ini?')) return;
+        await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        loadProductsAdmin(); showToast('info', 'Dihapus', 'Produk telah dihapus');
+    }
+    async function loadOrdersAdmin() {
+        const container = document.getElementById('admin-content');
+        const res = await fetch('/api/orders');
+        const orders = await res.json();
+        if (orders.length === 0) return container.innerHTML = '<p class="text-gray-500 text-center py-8">Belum ada pesanan.</p>';
+        container.innerHTML = `<h3 class="text-lg font-bold mb-4">Daftar Pesanan</h3>
+            <div class="overflow-x-auto"><table class="w-full text-sm bg-gray-50 rounded-xl">
+                <thead><tr><th class="px-4 py-3 text-left">ID</th><th class="px-4 py-3 text-left">User</th><th class="px-4 py-3 text-left">Item</th><th class="px-4 py-3 text-left">Total</th><th class="px-4 py-3 text-left">Status</th></tr></thead>
+                <tbody>${orders.map(o => `<tr class="border-b">
+                    <td class="px-4 py-3">#${o.id}</td>
+                    <td class="px-4 py-3">${o.userId}</td>
+                    <td class="px-4 py-3 text-xs">${o.items.map(i => `${i.name} (${i.level})`).join(', ')}</td>
+                    <td class="px-4 py-3">Rp${o.total.toLocaleString()}</td>
+                    <td class="px-4 py-3 capitalize">${o.status}</td>
+                </tr>`).join('')}</tbody>
+            </table></div>`;
+    }
+
+    // --- INIT ---
+    checkSession(); fetchProducts(); updateCartUI();
+</script>
+</body>
+</html>
