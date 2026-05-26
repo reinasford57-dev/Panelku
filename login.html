@@ -68,72 +68,61 @@
         </p>
     </div>
 
-    <script>
-        // Firebase Config (sesuaikan dengan proyek kamu)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+<script>
+    // Firebase Config (sesuaikan dengan proyek kamu)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-        // --- Login Google ---
-        document.getElementById('googleLoginBtn').addEventListener('click', () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then(() => {
-                    window.location.href = '/'; // Redirect ke index.html (toko)
-                })
-                .catch((error) => {
-                    console.error(error);
-                    alert('Login Google gagal: ' + error.message);
-                });
-        });
-
-        // --- Login Manual (Email/Password) untuk admin/reseller ---
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('loginError');
-
-            try {
-                // Coba login ke Firebase
-                await auth.signInWithEmailAndPassword(email, password);
-                // Jika sukses, redirect ke index.html
+    // --- Login Google (untuk member/user biasa) ---
+    document.getElementById('googleLoginBtn').addEventListener('click', () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider)
+            .then(() => {
                 window.location.href = '/';
-            } catch (err) {
-                // Fallback: cek login manual via backend (Data.json) jika Firebase tidak dipakai
-                // (Untuk integrasi dengan Server.js & Data.json)
-                try {
-                    const res = await fetch('/api/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: email, password })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error);
-                    // Login sukses via backend
-                    window.location.href = '/';
-                } catch (backendErr) {
-                    errorDiv.textContent = 'Email atau password salah.';
-                    errorDiv.classList.remove('hidden');
-                }
-            }
-        });
+            })
+            .catch((error) => {
+                console.error(error);
+                alert('Login Google gagal: ' + error.message);
+            });
+    });
 
-        // --- Cek session saat halaman dimuat ---
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // Jika sudah login, redirect ke index.html
-                window.location.href = '/';
-            }
-        });
-    </script>
-</body>
-</html>
+    // --- Login Manual (Admin/Owner/Reseller via Data.json) ---
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorDiv = document.getElementById('loginError');
+
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Login gagal');
+
+            // Login sukses via backend (Server.js & Data.json)
+            window.location.href = '/';
+        } catch (err) {
+            errorDiv.textContent = err.message || 'Username atau password salah.';
+            errorDiv.classList.remove('hidden');
+        }
+    });
+
+    // --- Cek session saat halaman dimuat (jika sudah login via Google) ---
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            window.location.href = '/';
+        }
+    });
+</script>
