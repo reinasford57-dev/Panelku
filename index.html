@@ -907,48 +907,51 @@
                 });
             }
 
-            // ---- CHECKOUT ----
-            async checkout() {
-                if (this.cart.length === 0) {
-                    this.showToast('Keranjang kosong!', 'error');
-                    return;
-                }
+            // -async checkout() {
+    if (this.cart.length === 0) {
+        this.showToast('Keranjang kosong!', 'error');
+        return;
+    }
 
-                const items = this.cart.map(item => ({
-                    productId: item.id,
-                    level: 'user',
-                    qty: item.quantity
-                }));
+    const items = this.cart.map(item => ({
+        productId: item.id,
+        level: 'user',
+        qty: item.quantity
+    }));
 
-                const btn = document.getElementById('checkoutBtn');
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-                btn.disabled = true;
+    const btn = document.getElementById('checkoutBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    btn.disabled = true;
 
-                try {
-                    const res = await fetch('/api/orders', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            items,
-                            userId: this.currentUser.username
-                        })
-                    });
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || 'Gagal membuat order');
+    try {
+        const res = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                items,
+                userId: this.currentUser.username
+            })
+        });
+        const data = await res.json(); // <-- AMBIL DATA DI SINI
+        if (!res.ok) throw new Error(data.error || 'Gagal membuat order');
 
-                    this.cart = [];
-                    this.saveCart();
-                    document.getElementById('cartSidebar').classList.remove('open');
-                    document.getElementById('cartOverlay').classList.remove('open');
+        // ✅ SIMPAN DATA ORDER
+        const order = data.order; // Ambil order dari response
 
-                    // ✅ Tampilkan QRIS
-                    this.showPaymentQR(data.order.id, data.order.total);
-                } catch (err) {
-                    this.showToast('error', 'Checkout gagal', err.message);
-                } finally {
-                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Checkout';
-                    btn.disabled = false;
-                }
+        // Kosongkan keranjang
+        this.cart = [];
+        this.saveCart();
+        document.getElementById('cartSidebar').classList.remove('open');
+        document.getElementById('cartOverlay').classList.remove('open');
+
+        // ✅ Tampilkan QRIS
+        this.showPaymentQR(order.id, order.total);
+    } catch (err) {
+        this.showToast('error', 'Checkout gagal', err.message);
+    } finally {
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Checkout';
+        btn.disabled = false;
+    }
             }
 
             // ---- TOAST ----
