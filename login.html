@@ -7,21 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #0f0f1a; color: #fff; }
-        .login-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
-        .google-btn { background: #fff; color: #333; transition: all 0.3s; }
-        .google-btn:hover { transform: scale(1.02); }
-        .divider { display: flex; align-items: center; text-align: center; color: #52525b; }
-        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .divider::before { margin-right: 15px; }
-        .divider::after { margin-left: 15px; }
+        .login-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); max-width: 400px; margin: auto; }
         input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #fff; }
         input:focus { outline: none; border-color: #8b5cf6; }
         .btn-primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); transition: all 0.3s; }
@@ -30,7 +19,7 @@
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
-    <div class="login-card w-full max-w-md rounded-2xl p-8">
+    <div class="login-card w-full rounded-2xl p-8">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
                 Welper ID
@@ -38,21 +27,11 @@
             <p class="text-gray-400 text-sm mt-1">Masuk untuk mengakses toko & dashboard</p>
         </div>
 
-        <!-- Login dengan Google -->
-        <button id="googleLoginBtn" class="google-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-semibold">
-            <i class="fab fa-google text-xl"></i>
-            Lanjutkan dengan Google
-        </button>
-
-        <div class="divider my-6 text-sm text-gray-500">atau login dengan email</div>
-
-        <!-- Form login manual (email/password) untuk admin/reseller -->
         <form id="loginForm">
             <div class="mb-4">
-                 <label class="block text-sm font-medium text-gray-400 mb-1">Username</label>
-                 <input type="text" id="username" required class="w-full rounded-xl px-4 py-2.5" placeholder="admin / owner / reseller" />
+                <label class="block text-sm font-medium text-gray-400 mb-1">Username</label>
+                <input type="text" id="username" required class="w-full rounded-xl px-4 py-2.5" placeholder="admin / owner / reseller" />
             </div>
-            
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-400 mb-1">Password</label>
                 <input type="password" id="password" required class="w-full rounded-xl px-4 py-2.5" placeholder="••••••••" />
@@ -62,67 +41,31 @@
                 Login
             </button>
         </form>
-
-        <p class="text-center text-xs text-gray-500 mt-4">
-            <i class="fas fa-shield-alt mr-1"></i> Login Google untuk user biasa. Admin/Reseller gunakan email & password.
-        </p>
     </div>
 
-<script>
-    // Firebase Config (sesuaikan dengan proyek kamu)
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('loginError');
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Login gagal');
 
-    // --- Login Google (untuk member/user biasa) ---
-    document.getElementById('googleLoginBtn').addEventListener('click', () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider)
-            .then(() => {
+                // Redirect ke halaman utama
                 window.location.href = '/';
-            })
-            .catch((error) => {
-                console.error(error);
-                alert('Login Google gagal: ' + error.message);
-            });
-    });
-
-    // --- Login Manual (Admin/Owner/Reseller via Data.json) ---
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const errorDiv = document.getElementById('loginError');
-
-        try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Login gagal');
-
-            // Login sukses via backend (Server.js & Data.json)
-            window.location.href = '/';
-        } catch (err) {
-            errorDiv.textContent = err.message || 'Username atau password salah.';
-            errorDiv.classList.remove('hidden');
-        }
-    });
-
-    // --- Cek session saat halaman dimuat (jika sudah login via Google) ---
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            window.location.href = '/';
-        }
-    });
-</script>
+            } catch (err) {
+                errorDiv.textContent = err.message || 'Username atau password salah.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
