@@ -664,6 +664,19 @@
 <div id="toast" class="toast"></div>
 
 <script>
+
+    // ✅ Cek apakah user sudah login
+const userData = localStorage.getItem('welperUser');
+if (!userData) {
+    // Jika belum login, redirect ke login
+    window.location.href = '/login.html';
+} else {
+    // Jika sudah login, lanjutkan aplikasi
+    const user = JSON.parse(userData);
+    console.log('Login sebagai:', user.username, 'Role:', user.role);
+    // (Lanjutkan kode inisialisasi toko di bawah sini...)
+}
+    
 // Cek session saat halaman dimuat
 async function checkSession() {
     try {
