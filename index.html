@@ -664,6 +664,18 @@
 <div id="toast" class="toast"></div>
 
 <script>
+       // Cek session saat halaman dimuat
+    fetch('/api/me')
+         .then(res => {
+              if (!res.ok) {
+                  window.location.href = '/login.html';
+             }
+        })
+    .catch(() => {
+        window.location.href = '/login.html';
+    });
+
+    
     // Firebase Config (sesuaikan dengan proyek kamu)
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
