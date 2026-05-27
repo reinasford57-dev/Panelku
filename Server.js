@@ -195,3 +195,30 @@ app.get('/api/payment-info', (req, res) => {
     const db = readDB();
     res.json(db.payment || {});
 });
+const multer = require('multer'); // npm install multer
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/api/upload-proof', upload.single('proof'), async (req, res) => {
+    const { orderId } = req.body;
+    const file = req.file;
+    if (!file) return res.status(400).json({ error: 'File tidak ditemukan' });
+
+    // Simpan file ke folder uploads, dan kirim notifikasi ke Telegram (opsional)
+    // Contoh notifikasi ke bot Telegram:
+    if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_CHAT_ID) {
+        const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
+        await bot.sendPhoto(process.env.TELEGRAM_CHAT_ID, file.path, {
+            caption: `Bukti transfer untuk order #${orderId}`
+        });
+    }
+
+    // Update status order menjadi 'waiting_confirmation'
+    const db = readDB();
+    const order = db.orders.find(o => o.id === orderId);
+    if (order) {
+        order.status = 'waiting_confirmation';
+        writeDB(db);
+    }
+
+    res.json({ message: 'Bukti diterima', orderId });
+});
