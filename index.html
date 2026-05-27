@@ -555,6 +555,26 @@
 <!-- ========== TOAST ========== -->
 <div id="toast" class="toast"></div>
 
+    <!-- ========== MODAL PEMBAYARAN QRIS ========== -->
+<div id="paymentModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closePaymentModal()"></div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 relative z-10 shadow-2xl text-center">
+        <button onclick="closePaymentModal()" class="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        <h3 class="text-xl font-extrabold text-gray-800 dark:text-white mb-2">💳 Pembayaran QRIS</h3>
+        <div id="qrContainer" class="flex flex-col items-center">
+            <div class="w-48 h-48 bg-white rounded-xl flex items-center justify-center mb-3 p-2">
+                <img id="qrImage" src="" alt="QR Code" class="w-full h-full object-contain" />
+            </div>
+            <p id="qrOrderId" class="text-sm text-gray-600 dark:text-gray-300">Order: #</p>
+            <p id="qrAmount" class="text-lg font-bold text-green-600 dark:text-green-400">Rp 0</p>
+            <p class="text-xs text-gray-500 mt-1">Scan dengan QRIS (DANA, OVO, GoPay, dll)</p>
+            <button onclick="checkPaymentStatus()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-blue-700 transition">
+                <i class="fas fa-sync-alt mr-1"></i> Cek Status
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     // ================================================================
     //  1.  CEK LOGIN (localStorage) – HARUS PERTAMA KALI
@@ -660,6 +680,52 @@
                 this.currentCategory = 'all';
                 this.searchQuery = '';
                 this.init();
+            }
+
+            // ===== PAYMENT QRIS FUNCTIONS =====
+let currentPaymentOrderId = null;
+
+async function showPaymentQR(orderId, amount) {
+    const modal = document.getElementById('paymentModal');
+    const qrImage = document.getElementById('qrImage');
+    const orderIdDisplay = document.getElementById('qrOrderId');
+    const amountDisplay = document.getElementById('qrAmount');
+
+    try {
+        // Minta QR ke backend
+        const res = await fetch('/api/payment-qris', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId, amount })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal membuat QR');
+
+        qrImage.src = data.qrImage;
+        orderIdDisplay.innerText = `Order: #${data.orderId}`;
+        amountDisplay.innerText = `Rp ${data.amount.toLocaleString()}`;
+        currentPaymentOrderId = orderId;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    } catch (err) {
+        showToast('error', 'QR Gagal', err.message);
+    }
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
+    document.getElementById('paymentModal').classList.remove('flex');
+}
+
+async function checkPaymentStatus() {
+    if (!currentPaymentOrderId) return;
+    showToast('info', 'Mengecek status...', 'Silakan tunggu');
+    // Di sini nanti bisa integrasi dengan payment gateway.
+    // Untuk simulasi, kita anggap pending dulu.
+    setTimeout(() => {
+        showToast('info', 'Status: Pending', 'Pembayaran belum diverifikasi');
+    }, 2000);
             }
 
             init() {
@@ -895,6 +961,9 @@
                 }
                 const total = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 this.showToast(`Pesanan berhasil! Total: Rp ${total.toLocaleString()}`, 'success');
+                // Di dalam checkout() setelah order sukses:
+                const order = data.order; // Ambil order dari response
+                showPaymentQR(order.id, order.total);
                 this.cart = [];
                 this.saveCart();
                 document.getElementById('cartSidebar').classList.remove('open');
