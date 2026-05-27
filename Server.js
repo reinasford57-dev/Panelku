@@ -190,3 +190,8 @@ app.post('/api/payment-qris', async (req, res) => {
         res.status(500).json({ error: 'Gagal membuat QR' });
     }
 });
+// Endpoint untuk mengambil informasi pembayaran
+app.get('/api/payment-info', (req, res) => {
+    const db = readDB();
+    res.json(db.payment || {});
+});
