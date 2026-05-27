@@ -664,16 +664,22 @@
 <div id="toast" class="toast"></div>
 
 <script>
-       // Cek session saat halaman dimuat
-    fetch('/api/me')
-         .then(res => {
-              if (!res.ok) {
-                  window.location.href = '/login.html';
-             }
-        })
-    .catch(() => {
+// Cek session saat halaman dimuat
+async function checkSession() {
+    try {
+        const res = await fetch('/api/me');
+        if (!res.ok) throw new Error('Not logged in');
+        const user = await res.json();
+        console.log('User logged in:', user);
+        // Lanjutkan inisialisasi toko
+    } catch (err) {
+        console.log('Session invalid, redirecting to login...');
         window.location.href = '/login.html';
-    });
+    }
+}
+
+// Panggil fungsi ini di awal
+checkSession();
 
     
     // Firebase Config (sesuaikan dengan proyek kamu)
