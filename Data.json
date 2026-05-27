@@ -40,3 +40,20 @@
   ],
   "orders": []
 }
+{
+  "payment": {
+    "bank": {
+      "name": "BCA",
+      "accountNumber": "1234567890",
+      "accountName": "Nama Wali"
+    },
+    "telegram": {
+      "ownerLink": "https://t.me/owner_welper",
+      "botToken": "YOUR_BOT_TOKEN",  // optional
+      "chatId": "YOUR_CHAT_ID"       // optional
+    }
+  },
+  "users": [...],
+  "products": [...],
+  "orders": []
+}
