@@ -21,12 +21,9 @@
 <body class="flex items-center justify-center min-h-screen p-4">
     <div class="login-card w-full rounded-2xl p-8">
         <div class="text-center mb-8">
-            <h1 class="text-3xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">
-                Welper ID
-            </h1>
-            <p class="text-gray-400 text-sm mt-1">Masuk untuk mengakses toko & dashboard</p>
+            <h1 class="text-3xl font-extrabold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent">Welper ID</h1>
+            <p class="text-gray-400 text-sm mt-1">Masuk dengan akun demo</p>
         </div>
-
         <form id="loginForm">
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-400 mb-1">Username</label>
@@ -37,38 +34,38 @@
                 <input type="password" id="password" required class="w-full rounded-xl px-4 py-2.5" placeholder="••••••••" />
             </div>
             <div id="loginError" class="hidden mb-3"></div>
-            <button type="submit" class="btn-primary w-full text-white py-2.5 rounded-xl font-bold text-sm">
-                Login
-            </button>
+            <button type="submit" class="btn-primary w-full text-white py-2.5 rounded-xl font-bold text-sm">Login</button>
         </form>
     </div>
-
     <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const errorDiv = document.getElementById('loginError');
+        // Akun demo
+        const ACCOUNTS = {
+            admin: { password: 'admin123', role: 'admin' },
+            owner: { password: 'owner123', role: 'owner' },
+            reseller: { password: 'reseller123', role: 'reseller' }
+        };
 
-        try {
-            const res = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Login gagal');
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const errorDiv = document.getElementById('loginError');
 
-            // ✅ Simpan data user ke localStorage
-            localStorage.setItem('welperUser', JSON.stringify(data.user));
-            
-            // ✅ Redirect ke halaman utama
+            const account = ACCOUNTS[username];
+            if (account && account.password === password) {
+                // Simpan user ke localStorage
+                localStorage.setItem('welperUser', JSON.stringify({ username, role: account.role }));
+                window.location.href = '/';
+            } else {
+                errorDiv.textContent = 'Username atau password salah.';
+                errorDiv.classList.remove('hidden');
+            }
+        });
+
+        // Jika sudah login, redirect ke index
+        if (localStorage.getItem('welperUser')) {
             window.location.href = '/';
-        } catch (err) {
-            errorDiv.textContent = err.message || 'Username atau password salah.';
-            errorDiv.classList.remove('hidden');
         }
-    });
     </script>
 </body>
 </html>
