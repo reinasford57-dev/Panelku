@@ -1,8 +1,8 @@
 {
   "users": [
-    { "id": 1, "username": "admin", "password": "admin123", "role": "admin" },
-    { "id": 2, "username": "owner", "password": "owner123", "role": "owner" },
-    { "id": 3, "username": "reseller", "password": "reseller123", "role": "reseller" }
+    { "id": 1, "username": "admin", "password": "admin1301", "role": "admin" },
+    { "id": 2, "username": "owner", "password": "owner1301", "role": "owner" },
+    { "id": 3, "username": "reseller", "password": "reseller0892", "role": "reseller" }
   ],
   "products": [
     {
