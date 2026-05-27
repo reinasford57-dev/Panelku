@@ -45,27 +45,28 @@
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorDiv = document.getElementById('loginError');
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
 
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Login gagal');
-
-                // Redirect ke halaman utama
-                window.location.href = '/';
-            } catch (err) {
-                errorDiv.textContent = err.message || 'Username atau password salah.';
-                errorDiv.classList.remove('hidden');
-            }
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
         });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Login gagal');
+
+        // Tunggu 500ms agar session benar-benar tersimpan
+        await new Promise(resolve => setTimeout(resolve, 500));
+        window.location.href = '/';
+    } catch (err) {
+        errorDiv.textContent = err.message || 'Username atau password salah.';
+        errorDiv.classList.remove('hidden');
+    }
+});
     </script>
 </body>
 </html>
