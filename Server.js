@@ -32,13 +32,30 @@ function writeDB(data) {
 }
 
 // --- AUTH ENDPOINTS ---
+app.use(session({
+    secret: 'welper-secret-key',
+    resave: true,            // Ubah dari false ke true
+    saveUninitialized: true, // Ubah dari false ke true
+    cookie: { secure: false, maxAge: 24*60*60*1000 }
+}));
+
 app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  const db = readDB();
-  const user = db.users.find(u => u.username === username && u.password === password);
-  if (!user) return res.status(401).json({ error: 'Username atau password salah' });
-  req.session.user = { id: user.id, username: user.username, role: user.role };
-  res.json({ message: 'Login berhasil', user: req.session.user });
+    const { username, password } = req.body;
+    const db = readDB();
+    const user = db.users.find(u => u.username === username && u.password === password);
+    if (!user) return res.status(401).json({ error: 'Username atau password salah' });
+
+    // Simpan user ke session
+    req.session.user = { id: user.id, username: user.username, role: user.role };
+    
+    // Paksa session disimpan sebelum response dikirim
+    req.session.save((err) => {
+        if (err) {
+            console.error('Session save error:', err);
+            return res.status(500).json({ error: 'Gagal menyimpan session' });
+        }
+        res.json({ message: 'Login berhasil', user: req.session.user });
+    });
 });
 
 app.post('/api/logout', (req, res) => {
