@@ -995,6 +995,61 @@ async function checkPaymentStatus() {
             document.getElementById('profileModal').classList.remove('open');
         }
     }
+
+    let currentPaymentOrderId = null;
+let currentPaymentAmount = 0;
+
+async function showPaymentOptions(orderId, amount) {
+    currentPaymentOrderId = orderId;
+    currentPaymentAmount = amount;
+
+    // Ambil info pembayaran dari backend
+    const res = await fetch('/api/payment-info');
+    const paymentInfo = await res.json();
+
+    const modal = document.getElementById('paymentModal');
+    const qrContainer = document.getElementById('qrContainer');
+
+    qrContainer.innerHTML = `
+        <div class="space-y-4">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Pilih Metode Pembayaran</h3>
+            
+            <!-- Opsi 1: Transfer Bank -->
+            <div class="border rounded-xl p-4">
+                <div class="font-semibold">💳 Transfer Bank (Manual)</div>
+                <div class="text-sm text-gray-600 mt-1">
+                    <p>Bank: ${paymentInfo.bank?.name || 'BCA'}</p>
+                    <p>Nomor: <strong>${paymentInfo.bank?.accountNumber || '1234567890'}</strong></p>
+                    <p>a/n: ${paymentInfo.bank?.accountName || 'Nama Wali'}</p>
+                </div>
+                <div class="mt-2">
+                    <label class="text-sm">Upload Bukti Transfer:</label>
+                    <input type="file" id="paymentProof" class="block w-full mt-1 border rounded p-2" />
+                    <button onclick="uploadProof('${orderId}')" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                        <i class="fas fa-upload"></i> Kirim Bukti
+                    </button>
+                </div>
+            </div>
+
+            <!-- Opsi 2: QRIS via Telegram -->
+            <div class="border rounded-xl p-4">
+                <div class="font-semibold">📱 QRIS (Scan & Bayar)</div>
+                <div class="text-sm text-gray-600 mt-1">
+                    <p>Scan QRIS milik owner di bawah ini, lalu konfirmasi ke Telegram.</p>
+                </div>
+                <div class="mt-2">
+                    <img src="https://quickchart.io/qr?text=Payment+for+Order+${orderId}&size=200" alt="QRIS" class="mx-auto w-48 h-48" />
+                </div>
+                <a href="${paymentInfo.telegram?.ownerLink || 'https://t.me/owner_welper'}" target="_blank" class="mt-2 inline-block bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-semibold">
+                    <i class="fab fa-telegram-plane"></i> Konfirmasi ke Telegram
+                </a>
+            </div>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
 </script>
 </body>
 </html>
