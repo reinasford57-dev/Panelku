@@ -907,21 +907,21 @@
                 });
             }
 
-            // -async checkout() {
-    if (this.cart.length === 0) {
-        this.showToast('Keranjang kosong!', 'error');
-        return;
-    }
+            async checkout() {
+               if (this.cart.length === 0) {
+                 this.showToast('Keranjang kosong!', 'error');
+                   return;
+            }
+   
+         const items = this.cart.map(item => ({
+           productId: item.id,
+           level: 'user',
+           qty: item.quantity
+            }));
 
-    const items = this.cart.map(item => ({
-        productId: item.id,
-        level: 'user',
-        qty: item.quantity
-    }));
-
-    const btn = document.getElementById('checkoutBtn');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-    btn.disabled = true;
+        const btn = document.getElementById('checkoutBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+        btn.disabled = true;
 
     try {
         const res = await fetch('/api/orders', {
@@ -932,11 +932,10 @@
                 userId: this.currentUser.username
             })
         });
-        const data = await res.json(); // <-- AMBIL DATA DI SINI
+        const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Gagal membuat order');
 
-        // ✅ SIMPAN DATA ORDER
-        const order = data.order; // Ambil order dari response
+        const order = data.order;
 
         // Kosongkan keranjang
         this.cart = [];
@@ -944,8 +943,8 @@
         document.getElementById('cartSidebar').classList.remove('open');
         document.getElementById('cartOverlay').classList.remove('open');
 
-        // ✅ Tampilkan QRIS
-        this.showPaymentQR(order.id, order.total);
+        // ✅ Tampilkan QRIS dengan method class
+        await this.showPaymentQR(order.id, order.total);
     } catch (err) {
         this.showToast('error', 'Checkout gagal', err.message);
     } finally {
@@ -953,33 +952,6 @@
         btn.disabled = false;
     }
             }
-
-            // ---- TOAST ----
-            showToast(message, type = 'info') {
-                const toast = document.getElementById('toast');
-                toast.style.background = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#6366f1');
-                toast.innerText = message;
-                toast.style.display = 'block';
-                setTimeout(() => { toast.style.display = 'none'; }, 3000);
-            }
-        }
-
-        // ================================================================
-        //  4.  JALANKAN APLIKASI
-        // ================================================================
-        new WelperStore(loggedInUser);
-
-        // ================================================================
-        //  5.  FUNGSI PROFILE (MODAL)
-        // ================================================================
-        function openProfile() {
-            document.getElementById('profileModal').classList.add('open');
-        }
-
-        function closeProfile() {
-            document.getElementById('profileModal').classList.remove('open');
-        }
-    }
 </script>
 </body>
 </html>
