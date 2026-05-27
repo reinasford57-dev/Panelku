@@ -163,3 +163,30 @@ app.get('/api/orders', checkRole(['admin', 'owner', 'reseller']), (req, res) => 
 app.listen(PORT, () => {
   console.log(`Server berjalan di http://localhost:${PORT}`);
 });
+
+// --- PAYMENT QRIS ---
+const QRCode = require('qrcode');
+
+app.post('/api/payment-qris', async (req, res) => {
+    const { orderId, amount } = req.body;
+    if (!orderId) {
+        return res.status(400).json({ error: 'Order ID diperlukan' });
+    }
+
+    // Data QR yang akan discan (bisa diubah sesuai payment gateway)
+    const qrData = `WELPER-${orderId}-${amount}`;
+    
+    try {
+        // Generate QR code sebagai data URL (base64 image)
+        const qrImage = await QRCode.toDataURL(qrData);
+        res.json({
+            success: true,
+            qrImage: qrImage,
+            orderId: orderId,
+            amount: amount
+        });
+    } catch (err) {
+        console.error('QR generation error:', err);
+        res.status(500).json({ error: 'Gagal membuat QR' });
+    }
+});
