@@ -664,6 +664,15 @@
 <div id="toast" class="toast"></div>
 
 <script>
+    // Cek login
+const userData = localStorage.getItem('welperUser');
+if (!userData) {
+    window.location.href = '/login.html';
+} else {
+    const user = JSON.parse(userData);
+    console.log('Login sebagai:', user.username, 'Role:', user.role);
+    // (Lanjutkan kode toko di bawah sini)
+}
 
     // ✅ Cek apakah user sudah login
 const userData = localStorage.getItem('welperUser');
@@ -677,23 +686,6 @@ if (!userData) {
     // (Lanjutkan kode inisialisasi toko di bawah sini...)
 }
     
-// Cek session saat halaman dimuat
-async function checkSession() {
-    try {
-        const res = await fetch('/api/me');
-        if (!res.ok) throw new Error('Not logged in');
-        const user = await res.json();
-        console.log('User logged in:', user);
-        // Lanjutkan inisialisasi toko
-    } catch (err) {
-        console.log('Session invalid, redirecting to login...');
-        window.location.href = '/login.html';
-    }
-}
-
-// Panggil fungsi ini di awal
-checkSession();
-
     
     // Firebase Config (sesuaikan dengan proyek kamu)
     const firebaseConfig = {
