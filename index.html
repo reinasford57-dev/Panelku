@@ -827,131 +827,297 @@
                         category: cat,
                         categoryName: PRODUCTS[cat].category,
                         categoryColor: PRODUCTS[cat].color,
-                        categoryIcon: PRODUCTS[cat].icon
-                    }))];
-                }
-
-                if (this.currentCategory !== 'all') {
-                    allProducts = allProducts.filter(p => p.category === this.currentCategory);
-                }
-
-                if (this.searchQuery) {
-                    const query = this.searchQuery.toLowerCase();
-                    allProducts = allProducts.filter(p =>
-                        p.name.toLowerCase().includes(query) ||
-                        p.description.toLowerCase().includes(query)
-                    );
-                }
-
-                const container = document.getElementById('productsGrid');
-                if (allProducts.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:50px; color:#52525b;">Produk tidak ditemukan</div>';
-                    return;
-                }
-
-                container.innerHTML = allProducts.map(p => `
-                    <div class="product-card">
-                        <div class="product-icon" style="background: ${p.categoryColor}20; color: ${p.categoryColor}">
-                            <i class="${p.categoryIcon}"></i>
-                        </div>
-                        <div class="product-name">${p.name}</div>
-                        <div class="product-desc">${p.description}</div>
-                        <div class="product-price">
-                            <span class="current-price">Rp ${p.price.toLocaleString()}</span>
-                        </div>
-                        <div class="product-stock"><i class="fas fa-check-circle"></i> Stok: ${p.stock}</div>
-                        <button class="buy-btn" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
-                            <i class="fas fa-shopping-cart"></i> Beli
-                        </button>
-                    </div>
-                `).join('');
-
-                document.querySelectorAll('.buy-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        const id = btn.getAttribute('data-id');
-                        const name = btn.getAttribute('data-name');
-                        const price = parseInt(btn.getAttribute('data-price'));
-                        this.addToCart({ id, name, price });
-                    });
-                });
-            }
-
-            // ---- EVENT LISTENERS ----
-            setupEventListeners() {
-                document.getElementById('searchInput').addEventListener('input', (e) => {
-                    this.searchQuery = e.target.value;
-                    this.renderProducts();
-                });
-
-                document.getElementById('cartIcon').addEventListener('click', () => {
-                    document.getElementById('cartSidebar').classList.add('open');
-                    document.getElementById('cartOverlay').classList.add('open');
-                });
-
-                document.getElementById('closeCartBtn').addEventListener('click', () => {
-                    document.getElementById('cartSidebar').classList.remove('open');
-                    document.getElementById('cartOverlay').classList.remove('open');
-                });
-
-                document.getElementById('cartOverlay').addEventListener('click', () => {
-                    document.getElementById('cartSidebar').classList.remove('open');
-                    document.getElementById('cartOverlay').classList.remove('open');
-                });
-
-                document.getElementById('checkoutBtn').addEventListener('click', () => this.checkout());
-
-                document.getElementById('logoutBtn').addEventListener('click', () => {
-                    localStorage.removeItem('welperUser');
-                    window.location.href = '/login.html';
-                });
-
-                async checkout() {
-    if (this.cart.length === 0) {
-        this.showToast('Keranjang kosong!', 'error');
-        return;
-    }
-
-    const items = this.cart.map(item => ({
-        productId: item.id,
-        level: 'user',
-        qty: item.quantity
-    }));
-
-    const btn = document.getElementById('checkoutBtn');
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-    btn.disabled = true;
-
-    try {
-        const res = await fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                items,
-                userId: this.currentUser.username
-            })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Gagal membuat order');
-
-        const order = data.order;
-
-        // Kosongkan keranjang
+class WelperStore {
+    constructor(user) {
+        this.currentUser = user;
         this.cart = [];
-        this.saveCart();
-        document.getElementById('cartSidebar').classList.remove('open');
-        document.getElementById('cartOverlay').classList.remove('open');
-
-        // ✅ Tampilkan QRIS dengan method class
-        await this.showPaymentQR(order.id, order.total);
-    } catch (err) {
-        this.showToast('error', 'Checkout gagal', err.message);
-    } finally {
-        btn.innerHTML = '<i class="fas fa-credit-card"></i> Checkout';
-        btn.disabled = false;
+        this.currentCategory = 'all';
+        this.searchQuery = '';
+        this.currentPaymentOrderId = null;
+        this.init();
     }
-                }
-            }
+
+    // ---- INISIALISASI ----
+    init() {
+        this.loadCart();
+        this.renderCategories();
+        this.renderProducts();
+        this.setupEventListeners();
+        this.updateUserUI();
+        this.updateDashboardLink();
+        this.updateProfileRank();
+    }
+
+    // ---- UI USER ----
+    updateUserUI() {
+        const displayName = this.currentUser.username;
+        document.getElementById('sidebarUserName').innerText = displayName;
+        document.getElementById('sidebarUserEmail').innerText = this.currentUser.email || '-';
+        document.getElementById('headerUserName').innerText = displayName;
+    }
+
+    updateDashboardLink() {
+        const role = this.currentUser.role;
+        const dashboardNav = document.getElementById('dashboardNavItem');
+        const profileDashboardLink = document.getElementById('profileDashboardLink');
+        if (['admin', 'owner', 'reseller'].includes(role)) {
+            dashboardNav.classList.remove('hidden');
+            profileDashboardLink.classList.remove('hidden');
+            dashboardNav.addEventListener('click', () => {
+                window.location.href = 'dashboard.html';
+            });
+        } else {
+            dashboardNav.classList.add('hidden');
+            profileDashboardLink.classList.add('hidden');
+        }
+    }
+
+    updateProfileRank() {
+        const role = this.currentUser.role;
+        let rank = 'Member';
+        let badgeClass = 'badge-member';
+        if (role === 'admin') { rank = 'Admin'; badgeClass = 'badge-admin'; }
+        else if (role === 'owner') { rank = 'Owner'; badgeClass = 'badge-owner'; }
+        else if (role === 'reseller') { rank = 'Reseller'; badgeClass = 'badge-reseller'; }
+        else if (role === 'premium') { rank = 'Premium'; badgeClass = 'badge-premium'; }
+
+        document.getElementById('profileName').innerText = this.currentUser.username;
+        document.getElementById('profileEmail').innerText = this.currentUser.email || '-';
+        document.getElementById('profileRank').innerHTML = `<span class="badge ${badgeClass}">${rank}</span>`;
+    }
+
+    // ---- CART ----
+    loadCart() {
+        const saved = localStorage.getItem('cart');
+        if (saved) this.cart = JSON.parse(saved);
+        this.updateCartUI();
+    }
+
+    saveCart() {
+        localStorage.setItem('cart', JSON.stringify(this.cart));
+        this.updateCartUI();
+    }
+
+    updateCartUI() {
+        const count = this.cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cartCount').innerText = count;
+
+        const cartItemsDiv = document.getElementById('cartItems');
+        if (this.cart.length === 0) {
+            cartItemsDiv.innerHTML = '<div style="text-align:center; color:#52525b;">Keranjang kosong</div>';
+        } else {
+            cartItemsDiv.innerHTML = this.cart.map(item => `
+                <div class="cart-item">
+                    <div class="cart-item-info">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-price">Rp ${item.price.toLocaleString()}</div>
+                        <div style="font-size:11px; color:#52525b;">x${item.quantity}</div>
+                    </div>
+                    <button class="cart-item-remove" data-id="${item.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+            document.querySelectorAll('.cart-item-remove').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = btn.getAttribute('data-id');
+                    this.removeFromCart(id);
+                });
+            });
+        }
+        const total = this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        document.getElementById('cartTotal').innerText = `Rp ${total.toLocaleString()}`;
+    }
+
+    addToCart(product) {
+        const existing = this.cart.find(item => item.id === product.id);
+        if (existing) { existing.quantity++; } else {
+            this.cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1 });
+        }
+        this.saveCart();
+        this.showToast(`${product.name} ditambahkan ke keranjang!`, 'success');
+    }
+
+    removeFromCart(id) {
+        this.cart = this.cart.filter(item => item.id !== id);
+        this.saveCart();
+        this.showToast('Produk dihapus dari keranjang', 'info');
+    }
+
+    // ---- RENDER PRODUK ----
+    renderCategories() {
+        const container = document.getElementById('categories');
+        container.innerHTML = CATEGORIES.map(cat => `
+            <button class="category-btn ${this.currentCategory === cat.id ? 'active' : ''}" data-category="${cat.id}">
+                <i class="${cat.icon}"></i> ${cat.name}
+            </button>
+        `).join('');
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.currentCategory = btn.getAttribute('data-category');
+                this.renderCategories();
+                this.renderProducts();
+            });
+        });
+    }
+
+    renderProducts() {
+        let allProducts = [];
+        for (const cat in PRODUCTS) {
+            allProducts = [...allProducts, ...PRODUCTS[cat].products.map(p => ({
+                ...p, category: cat, categoryName: PRODUCTS[cat].category,
+                categoryColor: PRODUCTS[cat].color, categoryIcon: PRODUCTS[cat].icon
+            }))];
+        }
+        if (this.currentCategory !== 'all') {
+            allProducts = allProducts.filter(p => p.category === this.currentCategory);
+        }
+        if (this.searchQuery) {
+            const query = this.searchQuery.toLowerCase();
+            allProducts = allProducts.filter(p =>
+                p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query)
+            );
+        }
+        const container = document.getElementById('productsGrid');
+        if (allProducts.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:50px; color:#52525b;">Produk tidak ditemukan</div>';
+            return;
+        }
+        container.innerHTML = allProducts.map(p => `
+            <div class="product-card">
+                <div class="product-icon" style="background: ${p.categoryColor}20; color: ${p.categoryColor}">
+                    <i class="${p.categoryIcon}"></i>
+                </div>
+                <div class="product-name">${p.name}</div>
+                <div class="product-desc">${p.description}</div>
+                <div class="product-price">
+                    <span class="current-price">Rp ${p.price.toLocaleString()}</span>
+                </div>
+                <div class="product-stock"><i class="fas fa-check-circle"></i> Stok: ${p.stock}</div>
+                <button class="buy-btn" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
+                    <i class="fas fa-shopping-cart"></i> Beli
+                </button>
+            </div>
+        `).join('');
+        document.querySelectorAll('.buy-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const id = btn.getAttribute('data-id');
+                const name = btn.getAttribute('data-name');
+                const price = parseInt(btn.getAttribute('data-price'));
+                this.addToCart({ id, name, price });
+            });
+        });
+    }
+
+    // ---- PAYMENT QRIS ----
+    async showPaymentQR(orderId, amount) {
+        const modal = document.getElementById('paymentModal');
+        const qrImage = document.getElementById('qrImage');
+        const orderIdDisplay = document.getElementById('qrOrderId');
+        const amountDisplay = document.getElementById('qrAmount');
+        try {
+            const res = await fetch('/api/payment-qris', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, amount })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Gagal membuat QR');
+            qrImage.src = data.qrImage;
+            orderIdDisplay.innerText = `Order: #${data.orderId}`;
+            amountDisplay.innerText = `Rp ${data.amount.toLocaleString()}`;
+            this.currentPaymentOrderId = orderId;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } catch (err) {
+            this.showToast('error', 'QR Gagal', err.message);
+        }
+    }
+
+    closePaymentModal() {
+        document.getElementById('paymentModal').classList.add('hidden');
+        document.getElementById('paymentModal').classList.remove('flex');
+    }
+
+    async checkPaymentStatus() {
+        if (!this.currentPaymentOrderId) return;
+        this.showToast('info', 'Mengecek status...', 'Silakan tunggu');
+        setTimeout(() => {
+            this.showToast('info', 'Status: Pending', 'Pembayaran belum diverifikasi');
+        }, 2000);
+    }
+
+    // ---- EVENT LISTENERS ----
+    setupEventListeners() {
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            this.searchQuery = e.target.value;
+            this.renderProducts();
+        });
+        document.getElementById('cartIcon').addEventListener('click', () => {
+            document.getElementById('cartSidebar').classList.add('open');
+            document.getElementById('cartOverlay').classList.add('open');
+        });
+        document.getElementById('closeCartBtn').addEventListener('click', () => {
+            document.getElementById('cartSidebar').classList.remove('open');
+            document.getElementById('cartOverlay').classList.remove('open');
+        });
+        document.getElementById('cartOverlay').addEventListener('click', () => {
+            document.getElementById('cartSidebar').classList.remove('open');
+            document.getElementById('cartOverlay').classList.remove('open');
+        });
+        document.getElementById('checkoutBtn').addEventListener('click', () => this.checkout());
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('welperUser');
+            window.location.href = '/login.html';
+        });
+    }
+
+    // ---- CHECKOUT ----
+    async checkout() {
+        if (this.cart.length === 0) {
+            this.showToast('Keranjang kosong!', 'error');
+            return;
+        }
+        const items = this.cart.map(item => ({
+            productId: item.id,
+            level: 'user',
+            qty: item.quantity
+        }));
+        const btn = document.getElementById('checkoutBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+        btn.disabled = true;
+        try {
+            const res = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ items, userId: this.currentUser.username })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Gagal membuat order');
+            const order = data.order;
+            this.cart = [];
+            this.saveCart();
+            document.getElementById('cartSidebar').classList.remove('open');
+            document.getElementById('cartOverlay').classList.remove('open');
+            await this.showPaymentQR(order.id, order.total);
+        } catch (err) {
+            this.showToast('error', 'Checkout gagal', err.message);
+        } finally {
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Checkout';
+            btn.disabled = false;
+        }
+    }
+
+    // ---- TOAST ----
+    showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.style.background = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#6366f1');
+        toast.innerText = message;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+}
 
     
 </script>
