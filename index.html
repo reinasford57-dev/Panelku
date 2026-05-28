@@ -905,23 +905,22 @@
                     localStorage.removeItem('welperUser');
                     window.location.href = '/login.html';
                 });
-            }
 
-            async checkout() {
-               if (this.cart.length === 0) {
-                 this.showToast('Keranjang kosong!', 'error');
-                   return;
-            }
-   
-         const items = this.cart.map(item => ({
-           productId: item.id,
-           level: 'user',
-           qty: item.quantity
-            }));
+                async checkout() {
+    if (this.cart.length === 0) {
+        this.showToast('Keranjang kosong!', 'error');
+        return;
+    }
 
-        const btn = document.getElementById('checkoutBtn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
-        btn.disabled = true;
+    const items = this.cart.map(item => ({
+        productId: item.id,
+        level: 'user',
+        qty: item.quantity
+    }));
+
+    const btn = document.getElementById('checkoutBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+    btn.disabled = true;
 
     try {
         const res = await fetch('/api/orders', {
@@ -951,7 +950,10 @@
         btn.innerHTML = '<i class="fas fa-credit-card"></i> Checkout';
         btn.disabled = false;
     }
+                }
             }
+
+    
 </script>
 </body>
 </html>
