@@ -578,47 +578,72 @@
         console.log('✅ Login berhasil sebagai:', loggedInUser.username, '| Role:', loggedInUser.role);
 
         // ================================================================
-        //  2.  DATA PRODUK (LENGKAP)
-        // ================================================================
-        const PRODUCTS = {
-            telegram: { category: "Telegram Premium", icon: "fab fa-telegram", color: "#0088cc", products: [
-                { id: "tg_1m", name: "Telegram Premium 1 Bulan", price: 35000, stock: 999, description: "Akses premium 30 hari" }
-            ] },
-            apps: { category: "Aplikasi Premium", icon: "fas fa-mobile-alt", color: "#10b981", products: [
-                { id: "spotify_1m", name: "Spotify Premium 1 Bulan", price: 25000, stock: 500, description: "Spotify Premium individual" }
-            ] },
-            games: { category: "Game Premium", icon: "fas fa-gamepad", color: "#f59e0b", products: [
-                { id: "ml_100", name: "MLBB 100 Diamond", price: 15000, stock: 999, description: "100 Diamond Mobile Legends" }
-            ] },
-            social: { category: "Social Media", icon: "fas fa-share-alt", color: "#3b82f6", products: [
-                { id: "ig_followers_1k", name: "IG Followers 1000", price: 25000, stock: 999, description: "1000 Followers IG" }
-            ] },
-            hosting: { category: "VPS & Hosting", icon: "fas fa-server", color: "#8b5cf6", products: [
-                { id: "vps_1gb", name: "VPS 1GB RAM", price: 50000, stock: 100, description: "1 vCPU, 1GB RAM, 20GB SSD" }
-            ] },
-            tools: { category: "Tools & Software", icon: "fas fa-tools", color: "#ef4444", products: [
-                { id: "win11_pro", name: "Windows 11 Pro", price: 175000, stock: 999, description: "Windows 11 Pro License" }
-            ] },
-            courses: { category: "Courses", icon: "fas fa-graduation-cap", color: "#06b6d4", products: [
-                { id: "course_web", name: "Web Developer Bootcamp", price: 250000, stock: 100, description: "Full Stack Web Dev" }
-            ] },
-            others: { category: "Lainnya", icon: "fas fa-ellipsis-h", color: "#6b7280", products: [
-                { id: "pulsa_50k", name: "Pulsa Rp 50.000", price: 52000, stock: 999, description: "All Operator" }
-            ] }
-        };
+//  2.  AMBIL DATA PRODUK DARI BACKEND
+// ================================================================
+let PRODUCTS = {};
+let CATEGORIES = [];
 
-        const CATEGORIES = [
+async function loadProductsFromBackend() {
+    try {
+        const res = await fetch('/api/products');
+        const products = await res.json();
+        // Kelompokkan produk berdasarkan kategori
+        products.forEach(p => {
+            if (!PRODUCTS[p.category]) {
+                PRODUCTS[p.category] = {
+                    category: p.category,
+                    icon: getIconForCategory(p.category),
+                    color: getColorForCategory(p.category),
+                    products: []
+                };
+            }
+            PRODUCTS[p.category].products.push(p);
+        });
+        // Buat daftar kategori untuk filter
+        CATEGORIES = [
             { id: "all", name: "Semua", icon: "fas fa-th-large" },
-            { id: "telegram", name: "Telegram Premium", icon: "fab fa-telegram" },
-            { id: "apps", name: "Aplikasi", icon: "fas fa-mobile-alt" },
-            { id: "games", name: "Game", icon: "fas fa-gamepad" },
-            { id: "social", name: "Social Media", icon: "fas fa-share-alt" },
-            { id: "hosting", name: "VPS & Hosting", icon: "fas fa-server" },
-            { id: "tools", name: "Tools", icon: "fas fa-tools" },
-            { id: "courses", name: "Courses", icon: "fas fa-graduation-cap" },
-            { id: "others", name: "Lainnya", icon: "fas fa-ellipsis-h" }
+            ...Object.keys(PRODUCTS).map(cat => ({
+                id: cat,
+                name: PRODUCTS[cat].category,
+                icon: PRODUCTS[cat].icon,
+                color: PRODUCTS[cat].color
+            }))
         ];
+        renderProducts();
+        renderCategories();
+    } catch (err) {
+        console.error('Gagal memuat produk:', err);
+        this.showToast(`Checkout gagal: ${err.message}`, 'error');
+    }
+}
 
+function getIconForCategory(cat) {
+    const icons = {
+        telegram: 'fab fa-telegram',
+        apps: 'fas fa-mobile-alt',
+        games: 'fas fa-gamepad',
+        social: 'fas fa-share-alt',
+        hosting: 'fas fa-server',
+        tools: 'fas fa-tools',
+        courses: 'fas fa-graduation-cap',
+        others: 'fas fa-ellipsis-h'
+    };
+    return icons[cat] || 'fas fa-cube';
+}
+
+function getColorForCategory(cat) {
+    const colors = {
+        telegram: '#0088cc',
+        apps: '#10b981',
+        games: '#f59e0b',
+        social: '#3b82f6',
+        hosting: '#8b5cf6',
+        tools: '#ef4444',
+        courses: '#06b6d4',
+        others: '#6b7280'
+    };
+    return colors[cat] || '#6366f1';
+    }
         // ================================================================
         //  3.  KELAS UTAMA
         // ================================================================
@@ -633,6 +658,7 @@
 
             init() {
                 this.loadCart();
+                loadProductsFromBackend();
                 this.renderCategories();
                 this.renderProducts();
                 this.setupEventListeners();
@@ -880,10 +906,10 @@
                 // Ganti dengan data rekening kamu
                 const bankInfo = {
                     name: 'BCA',
-                    accountNumber: '1234567890',
-                    accountName: 'Nama Wali'
+                    accountNumber: '085837440904',
+                    accountName: 'owner'
                 };
-                const telegramLink = 'https://t.me/owner_welper';
+                const telegramLink = 'https://t.me/NightmareXRiz';
 
                 qrContainer.innerHTML = `
                     <div class="space-y-4 text-left w-full">
@@ -928,13 +954,12 @@
             }
 
             showToast(message, type = 'info') {
-                const toast = document.getElementById('toast');
-                toast.style.background = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#6366f1');
-                toast.innerText = message;
+               const toast = document.getElementById('toast');
+               toast.style.background = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#6366f1');
+               toast.innerText = message;
                 toast.style.display = 'block';
-                setTimeout(() => { toast.style.display = 'none'; }, 3000);
+                 setTimeout(() => { toast.style.display = 'none'; }, 3000);
             }
-        }
 
         // ================================================================
         //  4.  JALANKAN APLIKASI
