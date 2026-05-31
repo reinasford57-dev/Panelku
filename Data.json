@@ -1,59 +1,54 @@
 {
-  "users": [
-    { "id": 1, "username": "admin", "password": "admin1301", "role": "admin" },
-    { "id": 2, "username": "owner", "password": "owner1301", "role": "owner" },
-    { "id": 3, "username": "reseller", "password": "reseller0892", "role": "reseller" }
-  ],
-  "products": [
-    {
-      "id": 101,
-      "name": "Panel Plesk Basic",
-      "category": "panel",
-      "basePrice": 50000,
-      "description": "Panel Hosting Plesk untuk 10 domain.",
-      "levelPrices": { "user": 0, "admin": 25000, "owner": 50000 }
-    },
-    {
-      "id": 102,
-      "name": "VPS NVMe Singapura",
-      "category": "vps",
-      "basePrice": 100000,
-      "description": "VPS dengan akses penuh, pilih level.",
-      "levelPrices": { "user": 0, "admin": 25000, "owner": 50000 }
-    },
-    {
-      "id": 103,
-      "name": "Nokos Telkomsel 1 Bulan",
-      "category": "nokos",
-      "basePrice": 15000,
-      "description": "Nomor kosong aktif Telkomsel.",
-      "levelPrices": { "user": 0, "admin": 0, "owner": 0 }
-    },
-    {
-      "id": 104,
-      "name": "VPS High CPU Jakarta",
-      "category": "vps",
-      "basePrice": 200000,
-      "description": "CPU 4 core, RAM 8GB, pilih level akses.",
-      "levelPrices": { "user": 0, "admin": 30000, "owner": 60000 }
-    }
-  ],
-  "orders": []
-}
-{
   "payment": {
     "bank": {
       "name": "BCA",
-      "accountNumber": "1234567890",
-      "accountName": "Nama Wali"
+      "accountNumber": "085837440904",
+      "accountName": "owner"
     },
     "telegram": {
-      "ownerLink": "https://t.me/owner_welper",
-      "botToken": "YOUR_BOT_TOKEN",  // optional
-      "chatId": "YOUR_CHAT_ID"       // optional
+      "ownerLink": "https://t.me/NightmareXRiz"
     }
   },
-  "users": [...],
-  "products": [...],
-  "orders": []
+  "users": [
+    { "id": 1, "username": "admin", "password": "admin13", "role": "admin" },
+    { "id": 2, "username": "owner", "password": "owner13", "role": "owner" },
+    { "id": 3, "username": "reseller", "password": "reseller13", "role": "reseller" },
+    { "id": 4, "username": "user","password": "userwarasya","role": "user"}
+  ],
+  "products": [
+    {
+      "id": "tg_1m",
+      "name": "Telegram Premium 1 Bulan",
+      "category": "telegram",
+      "basePrice": 35000,
+      "description": "Akses premium 30 hari",
+      "productData": "Kode: TG-1M-12345"
+    },
+    {
+      "id": "spotify_1m",
+      "name": "Spotify Premium 1 Bulan",
+      "category": "apps",
+      "basePrice": 25000,
+      "description": "Spotify Premium individual",
+      "productData": "Akun: spotify@example.com | Pass: spotify123"
+    },
+    {
+      "id": "ml_100",
+      "name": "MLBB 100 Diamond",
+      "category": "games",
+      "basePrice": 15000,
+      "description": "100 Diamond Mobile Legends",
+      "productData": "ID: 1234567890"
+    },
+    {
+      "id": "vps_1gb",
+      "name": "VPS 1GB RAM",
+      "category": "hosting",
+      "basePrice": 50000,
+      "description": "1 vCPU, 1GB RAM, 20GB SSD",
+      "productData": "IP: 123.45.67.89\nUser: root\nPass: vps123"
+    }
+  ],
+  "orders": [],
+  "chatIds": {}
 }
