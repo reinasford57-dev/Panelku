@@ -566,7 +566,7 @@
     </div>
 </div>
 
-<script>
+    <script>
     // ================================================================
     //  1.  CEK LOGIN (localStorage) – HARUS PERTAMA KALI
     // ================================================================
@@ -578,74 +578,7 @@
         console.log('✅ Login berhasil sebagai:', loggedInUser.username, '| Role:', loggedInUser.role);
 
         // ================================================================
-//  2.  AMBIL DATA PRODUK DARI BACKEND
-// ================================================================
-let PRODUCTS = {};
-let CATEGORIES = [];
-
-async function loadProductsFromBackend() {
-    try {
-        const res = await fetch('/api/products');
-        const products = await res.json();
-        // Kelompokkan produk berdasarkan kategori
-        products.forEach(p => {
-            if (!PRODUCTS[p.category]) {
-                PRODUCTS[p.category] = {
-                    category: p.category,
-                    icon: getIconForCategory(p.category),
-                    color: getColorForCategory(p.category),
-                    products: []
-                };
-            }
-            PRODUCTS[p.category].products.push(p);
-        });
-        // Buat daftar kategori untuk filter
-        CATEGORIES = [
-            { id: "all", name: "Semua", icon: "fas fa-th-large" },
-            ...Object.keys(PRODUCTS).map(cat => ({
-                id: cat,
-                name: PRODUCTS[cat].category,
-                icon: PRODUCTS[cat].icon,
-                color: PRODUCTS[cat].color
-            }))
-        ];
-        renderProducts();
-        renderCategories();
-    } catch (err) {
-        console.error('Gagal memuat produk:', err);
-        this.showToast(`Checkout gagal: ${err.message}`, 'error');
-    }
-}
-
-function getIconForCategory(cat) {
-    const icons = {
-        telegram: 'fab fa-telegram',
-        apps: 'fas fa-mobile-alt',
-        games: 'fas fa-gamepad',
-        social: 'fas fa-share-alt',
-        hosting: 'fas fa-server',
-        tools: 'fas fa-tools',
-        courses: 'fas fa-graduation-cap',
-        others: 'fas fa-ellipsis-h'
-    };
-    return icons[cat] || 'fas fa-cube';
-}
-
-function getColorForCategory(cat) {
-    const colors = {
-        telegram: '#0088cc',
-        apps: '#10b981',
-        games: '#f59e0b',
-        social: '#3b82f6',
-        hosting: '#8b5cf6',
-        tools: '#ef4444',
-        courses: '#06b6d4',
-        others: '#6b7280'
-    };
-    return colors[cat] || '#6366f1';
-    }
-        // ================================================================
-        //  3.  KELAS UTAMA
+        //  2.  KELAS UTAMA (SEMUA LOGIKA DIPINDAHKAN KE SINI)
         // ================================================================
         class WelperStore {
             constructor(user) {
@@ -653,20 +586,98 @@ function getColorForCategory(cat) {
                 this.cart = [];
                 this.currentCategory = 'all';
                 this.searchQuery = '';
+                this.PRODUCTS = {}; // Pindahkan ke dalam class
+                this.CATEGORIES = []; // Pindahkan ke dalam class
                 this.init();
             }
 
-            init() {
+            // ================================================================
+            //  INISIALISASI (ASYNC UNTUK MENUNGGU PRODUK)
+            // ================================================================
+            async init() {
                 this.loadCart();
-                loadProductsFromBackend();
-                this.renderCategories();
-                this.renderProducts();
+                await this.loadProductsFromBackend(); // ✅ TUNGGU SAMPAI SELESAI
                 this.setupEventListeners();
                 this.updateUserUI();
                 this.updateDashboardLink();
                 this.updateProfileRank();
             }
 
+            // ================================================================
+            //  AMBIL DATA PRODUK DARI BACKEND (SEKARANG METHOD CLASS)
+            // ================================================================
+            async loadProductsFromBackend() {
+                try {
+                    const res = await fetch('/api/products');
+                    if (!res.ok) throw new Error('Gagal mengambil produk');
+                    const products = await res.json();
+
+                    // Kelompokkan produk berdasarkan kategori
+                    this.PRODUCTS = {};
+                    products.forEach(p => {
+                        if (!this.PRODUCTS[p.category]) {
+                            this.PRODUCTS[p.category] = {
+                                category: p.category,
+                                icon: this.getIconForCategory(p.category),
+                                color: this.getColorForCategory(p.category),
+                                products: []
+                            };
+                        }
+                        this.PRODUCTS[p.category].products.push(p);
+                    });
+
+                    // Buat daftar kategori
+                    this.CATEGORIES = [
+                        { id: "all", name: "Semua", icon: "fas fa-th-large" },
+                        ...Object.keys(this.PRODUCTS).map(cat => ({
+                            id: cat,
+                            name: this.PRODUCTS[cat].category,
+                            icon: this.PRODUCTS[cat].icon,
+                            color: this.PRODUCTS[cat].color
+                        }))
+                    ];
+
+                    // ✅ RENDER SETELAH DATA DIMUAT
+                    this.renderProducts();
+                    this.renderCategories();
+
+                } catch (err) {
+                    console.error('Gagal memuat produk:', err);
+                    this.showToast(`Gagal memuat produk: ${err.message}`, 'error');
+                }
+            }
+
+            getIconForCategory(cat) {
+                const icons = {
+                    telegram: 'fab fa-telegram',
+                    apps: 'fas fa-mobile-alt',
+                    games: 'fas fa-gamepad',
+                    social: 'fas fa-share-alt',
+                    hosting: 'fas fa-server',
+                    tools: 'fas fa-tools',
+                    courses: 'fas fa-graduation-cap',
+                    others: 'fas fa-ellipsis-h'
+                };
+                return icons[cat] || 'fas fa-cube';
+            }
+
+            getColorForCategory(cat) {
+                const colors = {
+                    telegram: '#0088cc',
+                    apps: '#10b981',
+                    games: '#f59e0b',
+                    social: '#3b82f6',
+                    hosting: '#8b5cf6',
+                    tools: '#ef4444',
+                    courses: '#06b6d4',
+                    others: '#6b7280'
+                };
+                return colors[cat] || '#6366f1';
+            }
+
+            // ================================================================
+            //  UI USER
+            // ================================================================
             updateUserUI() {
                 const displayName = this.currentUser.username;
                 document.getElementById('sidebarUserName').innerText = displayName;
@@ -704,6 +715,9 @@ function getColorForCategory(cat) {
                 document.getElementById('profileRank').innerHTML = `<span class="badge ${badgeClass}">${rank}</span>`;
             }
 
+            // ================================================================
+            //  CART
+            // ================================================================
             loadCart() {
                 const saved = localStorage.getItem('cart');
                 if (saved) this.cart = JSON.parse(saved);
@@ -761,9 +775,12 @@ function getColorForCategory(cat) {
                 this.showToast('Produk dihapus dari keranjang', 'info');
             }
 
+            // ================================================================
+            //  RENDER PRODUK & KATEGORI
+            // ================================================================
             renderCategories() {
                 const container = document.getElementById('categories');
-                container.innerHTML = CATEGORIES.map(cat => `
+                container.innerHTML = this.CATEGORIES.map(cat => `
                     <button class="category-btn ${this.currentCategory === cat.id ? 'active' : ''}" data-category="${cat.id}">
                         <i class="${cat.icon}"></i> ${cat.name}
                     </button>
@@ -779,10 +796,10 @@ function getColorForCategory(cat) {
 
             renderProducts() {
                 let allProducts = [];
-                for (const cat in PRODUCTS) {
-                    allProducts = [...allProducts, ...PRODUCTS[cat].products.map(p => ({
-                        ...p, category: cat, categoryName: PRODUCTS[cat].category,
-                        categoryColor: PRODUCTS[cat].color, categoryIcon: PRODUCTS[cat].icon
+                for (const cat in this.PRODUCTS) {
+                    allProducts = [...allProducts, ...this.PRODUCTS[cat].products.map(p => ({
+                        ...p, category: cat, categoryName: this.PRODUCTS[cat].category,
+                        categoryColor: this.PRODUCTS[cat].color, categoryIcon: this.PRODUCTS[cat].icon
                     }))];
                 }
                 if (this.currentCategory !== 'all') {
@@ -826,6 +843,9 @@ function getColorForCategory(cat) {
                 });
             }
 
+            // ================================================================
+            //  EVENT LISTENERS
+            // ================================================================
             setupEventListeners() {
                 document.getElementById('searchInput').addEventListener('input', (e) => {
                     this.searchQuery = e.target.value;
@@ -886,10 +906,10 @@ function getColorForCategory(cat) {
                     document.getElementById('cartSidebar').classList.remove('open');
                     document.getElementById('cartOverlay').classList.remove('open');
 
-                    // ✅ Tampilkan opsi pembayaran (Transfer Bank + Telegram)
+                    // ✅ Tampilkan opsi pembayaran
                     this.showPaymentOptions(order.id, order.total);
                 } catch (err) {
-                    this.showToast('error', 'Checkout gagal', err.message);
+                    this.showToast(`Checkout gagal: ${err.message}`, 'error');
                 } finally {
                     btn.innerHTML = '<i class="fas fa-credit-card"></i> Checkout';
                     btn.disabled = false;
@@ -897,13 +917,12 @@ function getColorForCategory(cat) {
             }
 
             // ================================================================
-            //  SHOW PAYMENT OPTIONS (Transfer Bank + Telegram QRIS)
+            //  SHOW PAYMENT OPTIONS
             // ================================================================
             showPaymentOptions(orderId, amount) {
                 const modal = document.getElementById('paymentModal');
                 const qrContainer = document.getElementById('qrContainer');
 
-                // Ganti dengan data rekening kamu
                 const bankInfo = {
                     name: 'BCA',
                     accountNumber: '085837440904',
@@ -953,21 +972,25 @@ function getColorForCategory(cat) {
                 document.getElementById('paymentModal').classList.remove('flex');
             }
 
+            // ================================================================
+            //  TOAST (HANYA 2 PARAMETER)
+            // ================================================================
             showToast(message, type = 'info') {
-               const toast = document.getElementById('toast');
-               toast.style.background = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#6366f1');
-               toast.innerText = message;
+                const toast = document.getElementById('toast');
+                toast.style.background = type === 'error' ? '#ef4444' : (type === 'success' ? '#10b981' : '#6366f1');
+                toast.innerText = message;
                 toast.style.display = 'block';
-                 setTimeout(() => { toast.style.display = 'none'; }, 3000);
+                setTimeout(() => { toast.style.display = 'none'; }, 3000);
             }
+        }
 
         // ================================================================
-        //  4.  JALANKAN APLIKASI
+        //  3.  JALANKAN APLIKASI
         // ================================================================
         new WelperStore(loggedInUser);
 
         // ================================================================
-        //  5.  FUNGSI PROFILE (MODAL)
+        //  4.  FUNGSI PROFILE (MODAL)
         // ================================================================
         function openProfile() {
             document.getElementById('profileModal').classList.add('open');
@@ -978,5 +1001,6 @@ function getColorForCategory(cat) {
         }
     }
 </script>
+                
 </body>
 </html>
