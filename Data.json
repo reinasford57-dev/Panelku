@@ -13,9 +13,8 @@
     { "id": 1, "username": "admin", "password": "admin13", "role": "admin" },
     { "id": 2, "username": "owner", "password": "owner13", "role": "owner" },
     { "id": 3, "username": "reseller", "password": "reseller13", "role": "reseller" },
-    { "id": 4, "username": "user","password": "userwarasya","role": "user"}
+    { "id": 4, "username": "user", "password": "userwarasya", "role": "user" }
   ],
-  {
   "products": [
     {
       "id": "panel_ram_3gb",
@@ -81,8 +80,7 @@
       "description": "Script cpanel bot simpel dan canggih",
       "productData": "Script: Cpanel Bot\nTipe: Simpel & Canggih"
     }
-  ]
-}
+  ],
   "orders": [],
   "chatIds": {}
 }
