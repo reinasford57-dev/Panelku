@@ -898,7 +898,7 @@
                         <div class="product-name">${p.name}</div>
                         <div class="product-desc">${p.description}</div>
                         <div class="product-price">
-                            <span class="current-price">Rp ${p.price ? p.price.toLocaleString() : '0'}</span>
+                            <span class="current-price">Rp ${p.basePrice ? p.basePrice.toLocaleString() : '0'}</span>
                         </div>
                         <div class="product-stock"><i class="fas fa-check-circle"></i> Stok: ${p.stock ?? 'Tersedia'}</div>
                         <button class="buy-btn" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
