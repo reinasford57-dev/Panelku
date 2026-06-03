@@ -17,19 +17,19 @@
   ],
   "products": [
     {
-      "id": "tg_1m",
-      "name": "Telegram Premium 1 Bulan",
-      "category": "telegram",
-      "basePrice": 35000,
-      "description": "Akses premium 30 hari",
+      "id": "p_1m",
+      "name": "panel 3gb pterodactyl",
+      "category": "panel",
+      "basePrice": 2000,
+      "description": "dari server legal avtive 30day",
       "productData": "Kode: TG-1M-12345"
     },
     {
-      "id": "spotify_1m",
-      "name": "Spotify Premium 1 Bulan",
-      "category": "apps",
-      "basePrice": 25000,
-      "description": "Spotify Premium individual",
+      "id": "p_1m",
+      "name": "panel 4gb pterodactyl",
+      "category": "panel",
+      "basePrice": , 4000
+      "description": "dsri server legal active 30 day",
       "productData": "Akun: spotify@example.com | Pass: spotify123"
     },
     {
