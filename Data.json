@@ -15,40 +15,74 @@
     { "id": 3, "username": "reseller", "password": "reseller13", "role": "reseller" },
     { "id": 4, "username": "user","password": "userwarasya","role": "user"}
   ],
+  {
   "products": [
     {
-      "id": "p_1m",
-      "name": "panel 3gb pterodactyl",
+      "id": "panel_ram_3gb",
+      "name": "Panel Pterodactyl RAM 3GB",
       "category": "panel",
       "basePrice": 2000,
-      "description": "dari server legal avtive 30day",
-      "productData": "Kode: TG-1M-12345"
+      "description": "RAM 3GB, active 30 day, full garansi, anti intip SC, anti delay, anti delete. Speck vps ram 24gb core 8 NMVe",
+      "productData": "Server: Panel Pterodactyl\nRAM: 3GB\nMasa Aktif: 30 hari\nGaransi: Full"
     },
     {
-      "id": "p_1m",
-      "name": "panel 4gb pterodactyl",
+      "id": "panel_ram_4gb",
+      "name": "Panel Pterodactyl RAM 4GB",
       "category": "panel",
-      "basePrice": , 4000
-      "description": "dsri server legal active 30 day",
-      "productData": "Akun: spotify@example.com | Pass: spotify123"
+      "basePrice": 3000,
+      "description": "RAM 4GB, active 30 day, full garansi, anti intip SC, anti delay, anti delete. Speck vps ram 24gb core 8 NMVe",
+      "productData": "Server: Panel Pterodactyl\nRAM: 4GB\nMasa Aktif: 30 hari\nGaransi: Full"
     },
     {
-      "id": "ml_100",
-      "name": "MLBB 100 Diamond",
-      "category": "games",
-      "basePrice": 15000,
-      "description": "100 Diamond Mobile Legends",
-      "productData": "ID: 1234567890"
+      "id": "panel_ram_5gb",
+      "name": "Panel Pterodactyl RAM 5GB",
+      "category": "panel",
+      "basePrice": 4000,
+      "description": "RAM 5GB, active 30 day, full garansi, anti intip SC, anti delay, anti delete. Speck vps ram 24gb core 8 NMVe",
+      "productData": "Server: Panel Pterodactyl\nRAM: 5GB\nMasa Aktif: 30 hari\nGaransi: Full"
     },
     {
-      "id": "vps_1gb",
-      "name": "VPS 1GB RAM",
-      "category": "hosting",
-      "basePrice": 50000,
-      "description": "1 vCPU, 1GB RAM, 20GB SSD",
-      "productData": "IP: 123.45.67.89\nUser: root\nPass: vps123"
+      "id": "panel_ram_6gb",
+      "name": "Panel Pterodactyl RAM 6GB",
+      "category": "panel",
+      "basePrice": 5000,
+      "description": "RAM 6GB, active 30 day, full garansi, anti intip SC, anti delay, anti delete. Speck vps ram 24gb core 8 NMVe",
+      "productData": "Server: Panel Pterodactyl\nRAM: 6GB\nMasa Aktif: 30 hari\nGaransi: Full"
+    },
+    {
+      "id": "panel_ram_7gb",
+      "name": "Panel Pterodactyl RAM 7GB",
+      "category": "panel",
+      "basePrice": 6000,
+      "description": "RAM 7GB, active 30 day, full garansi, anti intip SC, anti delay, anti delete. Speck vps ram 24gb core 8 NMVe",
+      "productData": "Server: Panel Pterodactyl\nRAM: 7GB\nMasa Aktif: 30 hari\nGaransi: Full"
+    },
+    {
+      "id": "panel_ram_unlimited",
+      "name": "Panel Pterodactyl RAM Unlimited",
+      "category": "panel",
+      "basePrice": 14000,
+      "description": "RAM Unlimited, active 30 day, full garansi, anti intip SC, anti delay, anti delete. Speck vps ram 24gb core 8 NMVe",
+      "productData": "Server: Panel Pterodactyl\nRAM: Unlimited\nMasa Aktif: 30 hari\nGaransi: Full"
+    },
+    {
+      "id": "panel_ram_unlimited_permanen",
+      "name": "Panel Pterodactyl RAM Unlimited Permanen",
+      "category": "panel",
+      "basePrice": 23000,
+      "description": "RAM Unlimited Permanen, full garansi, anti intip SC, anti delay, anti delete. Speck vps ram 24gb core 8 NMVe",
+      "productData": "Server: Panel Pterodactyl\nRAM: Unlimited\nMasa Aktif: Permanen\nGaransi: Full"
+    },
+    {
+      "id": "script_cpanel_bot",
+      "name": "SC Cpanel Bot Simpel & Canggih",
+      "category": "script",
+      "basePrice": 10000,
+      "description": "Script cpanel bot simpel dan canggih",
+      "productData": "Script: Cpanel Bot\nTipe: Simpel & Canggih"
     }
-  ],
+  ]
+}
   "orders": [],
   "chatIds": {}
 }
